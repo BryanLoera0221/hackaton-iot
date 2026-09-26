@@ -8,12 +8,12 @@ const db = new PrismaClient();
  */
 const PATIENTS = [
   { id: "301A", room: "301", bed: "A", name: "Amelia Cortés", age: 78, risk: "alto", weightKg: 61.4 },
-  { id: "301B", room: "301", bed: "B", name: "Rubén Salas", age: 69, risk: "medio", weightKg: 79.8 },
+  { id: "301B", room: "301", bed: "A", name: "Rubén Salas", age: 69, risk: "medio", weightKg: 79.8 },
   { id: "302A", room: "302", bed: "A", name: "María Torres", age: 84, risk: "alto", weightKg: 54.2 },
-  { id: "302B", room: "302", bed: "B", name: "Jorge Reyes", age: 72, risk: "medio", weightKg: 88.1 },
+  { id: "302B", room: "302", bed: "A", name: "Jorge Reyes", age: 72, risk: "medio", weightKg: 88.1 },
   { id: "303A", room: "303", bed: "A", name: "Lucía Palma", age: 66, risk: "bajo", weightKg: 63.7 },
   { id: "304A", room: "304", bed: "A", name: "Ernesto Vidal", age: 81, risk: "alto", weightKg: 68.2 },
-  { id: "304B", room: "304", bed: "B", name: "Carmen Aguirre", age: 75, risk: "medio", weightKg: 57.9 },
+  { id: "304B", room: "304", bed: "A", name: "Carmen Aguirre", age: 75, risk: "medio", weightKg: 57.9 },
   { id: "305A", room: "305", bed: "A", name: "Tomás Iriarte", age: 59, risk: "bajo", weightKg: 91.3 },
   { id: "306A", room: "306", bed: "A", name: "Rosa Mendieta", age: 88, risk: "alto", weightKg: 49.6 },
   { id: "307A", room: "307", bed: "A", name: "Hugo Balmaceda", age: 71, risk: "medio", weightKg: 82.5 },
