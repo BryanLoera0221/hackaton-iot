@@ -8,12 +8,12 @@ datos quemados.
 
 | Qué quieres cambiar | Dónde |
 |---|---|
-| Nombre de la estación / piso | `FALLGUARD_CONFIG.station` |
+| Piso / ala (subtítulo del Panel) | `FALLGUARD_CONFIG.floor` |
 | Enfermeros del turno | `FALLGUARD_CONFIG.nurses` (el primero queda seleccionado) |
 | Pacientes, habitaciones, edad, riesgo | `PATIENTS` |
 | Alertas activas al abrir | `INITIAL_ALERTS` |
 | Historial del turno (métrica del pitch) | `INITIAL_HISTORY` |
-| Segunda línea de la celda "Camilla" con peso + mini-gráfica | `showWeight: true` |
+| Peso + mini-gráfica al lado del estado de la tarjeta | `showWeight: true` |
 | Barra de botones de simulación | `showDemoFooter` |
 
 Los tiempos de los mocks son **relativos** (`secondsAgo`, `minutesAgo`), así que
@@ -48,12 +48,12 @@ La forma de los datos ya es la definitiva: los componentes consumen los tipos de
 ```
 src/domain/types.ts          tipos compartidos (mock y real)
 src/mock/data.ts             ← los datos
-src/styles/industry.css      sistema de diseño (tokens, .btn .seg .table .dialog .blueprint)
-src/styles/fallguard.css     severidades y pantallas
+src/styles/industry.css      sistema de diseño (tokens teal, .btn .seg .table .dialog)
+src/styles/fallguard.css     severidades, riel, columna de alertas y pantallas
 src/app/_lib/useFallGuard.ts estado: alertas, historial, escalada, atender
 src/app/_lib/format.ts       formato de horas, contadores y tiempos de respuesta
-src/app/_components/         header, banda de alertas, lista, historial, diálogo, demo
-src/app/page.tsx             arma las tres pestañas
+src/app/_components/         riel de navegación, columna de alertas, tarjetas, historial, diálogo, demo
+src/app/page.tsx             arma el layout de 3 columnas y las pestañas
 ```
 
 ## Detalles que no se ven pero importan

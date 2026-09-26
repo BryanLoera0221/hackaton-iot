@@ -34,7 +34,7 @@ export function DemoFooter({ state }: { state: FallGuardState }) {
   };
 
   return (
-    <footer className="fg-demo">
+    <div className="fg-demo">
       <span className="fg-demo-label">
         Demo · simula eventos del Arduino (reemplazable por el feed SSE real)
       </span>
@@ -50,6 +50,6 @@ export function DemoFooter({ state }: { state: FallGuardState }) {
       <button type="button" className="btn btn-secondary" onClick={state.reset}>
         Reiniciar
       </button>
-    </footer>
+    </div>
   );
 }

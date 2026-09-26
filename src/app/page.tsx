@@ -4,10 +4,10 @@ import { useState } from "react";
 import type { HistoryFilter, Tab } from "~/domain/types";
 import { FALLGUARD_CONFIG } from "~/mock/data";
 import { useFallGuard } from "~/app/_lib/useFallGuard";
-import { AppHeader } from "~/app/_components/AppHeader";
+import { NavRail } from "~/app/_components/NavRail";
+import { TopBar } from "~/app/_components/TopBar";
 import { AlertBand } from "~/app/_components/AlertBand";
 import { PatientList } from "~/app/_components/PatientList";
-import { HandledPanel } from "~/app/_components/HandledPanel";
 import { HistoryView } from "~/app/_components/HistoryView";
 import { SystemView } from "~/app/_components/SystemView";
 import { EventDialog } from "~/app/_components/EventDialog";
@@ -43,9 +43,9 @@ export default function DashboardPage() {
   if (!state.ready) {
     // El estado inicial se arma en el cliente (timestamps relativos a "ahora").
     return (
-      <main>
-        <AppHeader tab={tab} onTab={setTab} nurse={shiftNurse} onNurse={setShiftNurse} now={0} />
-        <div className="fg-view">
+      <main className="fg-app">
+        <NavRail tab={tab} onTab={setTab} />
+        <div className="fg-main" style={{ gridColumn: "2 / -1" }}>
           <p className="fg-section-sub">Conectando con las camillas…</p>
         </div>
       </main>
@@ -53,58 +53,54 @@ export default function DashboardPage() {
   }
 
   return (
-    <main>
-      <AppHeader
-        tab={tab}
-        onTab={setTab}
-        nurse={shiftNurse}
-        onNurse={setShiftNurse}
+    <main className="fg-app">
+      <NavRail tab={tab} onTab={setTab} />
+
+      <AlertBand
+        alerts={state.alerts}
+        patientById={state.patientById}
         now={state.now}
+        patientCount={state.patients.length}
+        lastHandledAt={state.history[0]?.t ?? null}
+        avgResponseToday={state.avgResponse()}
+        onOpen={openDetail}
+        onAttend={attendFromCard}
       />
 
-      {tab === "panel" && (
-        <div className="fg-view">
-          <AlertBand
-            alerts={state.alerts}
-            patientById={state.patientById}
-            now={state.now}
-            patientCount={state.patients.length}
-            lastHandledAt={state.history[0]?.t ?? null}
-            onOpen={openDetail}
-            onAttend={attendFromCard}
-          />
-
-          <div className="fg-columns">
-            <PatientList
-              patients={state.patients}
-              alertOf={state.alertOf}
-              now={state.now}
-              occupiedBeds={state.occupiedBeds}
-              onOpen={openDetail}
-            />
-            <HandledPanel
-              history={state.history}
-              patientById={state.patientById}
-              avgResponse={state.avgResponse()}
-              onSeeAll={() => setTab("historial")}
-            />
-          </div>
-        </div>
-      )}
-
-      {tab === "historial" && (
-        <HistoryView
-          history={state.history}
-          patientById={state.patientById}
-          filter={historyFilter}
-          onFilter={setHistoryFilter}
-          avgResponse={state.avgResponse}
+      <div className="fg-main">
+        <TopBar
+          tab={tab}
+          nurse={shiftNurse}
+          onNurse={setShiftNurse}
+          now={state.now}
+          patientCount={state.patients.length}
+          occupiedBeds={state.occupiedBeds}
+          historyCount={state.history.length}
         />
-      )}
 
-      {tab === "sistema" && <SystemView />}
+        {tab === "panel" && (
+          <PatientList
+            patients={state.patients}
+            alertOf={state.alertOf}
+            now={state.now}
+            onOpen={openDetail}
+          />
+        )}
 
-      {FALLGUARD_CONFIG.showDemoFooter && <DemoFooter state={state} />}
+        {tab === "historial" && (
+          <HistoryView
+            history={state.history}
+            patientById={state.patientById}
+            filter={historyFilter}
+            onFilter={setHistoryFilter}
+            avgResponse={state.avgResponse}
+          />
+        )}
+
+        {tab === "sistema" && <SystemView />}
+
+        {FALLGUARD_CONFIG.showDemoFooter && <DemoFooter state={state} />}
+      </div>
 
       {detailAlert && detailPatient && (
         <EventDialog

@@ -23,6 +23,11 @@ export type Patient = {
    * Hoy es un valor simulado que solo se pinta si `SHOW_WEIGHT` está activo.
    */
   weightKg?: number;
+  /**
+   * No provista por el diseño todavía. Si existe, la tarjeta la muestra en
+   * lugar del placeholder con iniciales.
+   */
+  photoUrl?: string;
 };
 
 export type AlertType = "exit" | "fall";

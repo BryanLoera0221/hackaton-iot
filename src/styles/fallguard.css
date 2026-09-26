@@ -1,28 +1,28 @@
 /**
- * FallGuard — capa sobre Industry.
+ * FallGuard — capa sobre Industry (v2 "Columna de alertas", paleta teal).
  *
  * Sistema de severidad en 4 canales a la vez (color, forma del icono, estilo
  * de borde, tamaño) para que se lea igual con daltonismo o con reflejo en la
  * pantalla de pared.
  *
- *   1 Normal      — tinta sobre fondo claro, círculo hueco, borde 1px
- *   2 Salida      — trama ámbar, triángulo, borde 2px punteado, media tarjeta
- *   3 Caída       — rojo sólido, octágono, borde 3px sólido, ancho completo + pulso
+ *   1 Normal   — tarjeta blanca, círculo hueco Scooter, borde 1px Heather
+ *   2 Salida   — trama ámbar, triángulo, borde 2px punteado, sin pulso
+ *   3 Caída    — rojo sólido, octágono, borde 3px sólido + halo pulsante
  */
 
 :root {
-  /* Severidad 3 — caída (fuera del sistema Industry, a propósito) */
+  /* Severidad 3 — caída (color funcional, fuera de la paleta de marca) */
   --fall-fill: #b3261e;
   --fall-deep: #7a1712;
   --fall-tint: #fbe8e6;
 
   /* Severidad 2 — salida de cama */
-  --exit-border: #b7791f;
-  --exit-hatch-a: #f6e6c4;
-  --exit-hatch-b: #fbf3e2;
-  --exit-text: #6e4a0e;
+  --exit-border: #c7861a;
+  --exit-hatch-a: #fbe9c3;
+  --exit-hatch-b: #fdf4e1;
+  --exit-text: #6b4608;
   --exit-text-2: #4a3208;
-  --exit-icon-sm: #9a6716;
+  --exit-icon-sm: #a06b12;
 }
 
 .hatch {
@@ -47,84 +47,140 @@
 
 h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.05; margin: 0; }
 
-/* ── Header global ─────────────────────────────────────────────────────── */
+/* ── Estructura general: riel + columna de alertas + contenido ───────────── */
 
-.fg-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 20px 32px;
-  padding: 16px 32px;
-  border-bottom: 1px solid var(--color-divider);
+.fg-app {
+  display: grid;
+  grid-template-columns: 72px 500px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--color-bg);
 }
 
-.fg-brand { display: flex; align-items: baseline; gap: 14px; margin-right: auto; }
-.fg-brand h1 { font-size: 30px; line-height: 1; }
-.fg-station { font-size: 15px; color: var(--color-neutral-700); }
+@media (max-width: 1100px) {
+  .fg-app { grid-template-columns: 72px minmax(0, 1fr); }
+  .fg-alerts { grid-column: 2; position: static; height: auto; max-height: 480px; }
+  .fg-main { grid-column: 2; }
+}
 
-.fg-header-group { display: flex; align-items: center; gap: 10px; }
-.fg-header-label { font-size: 14px; color: var(--color-neutral-700); }
+/* ── Columna 1: riel de navegación ─────────────────────────────────────── */
 
-.fg-live { display: flex; align-items: center; gap: 8px; }
-.fg-live-dot { width: 8px; height: 8px; background: var(--color-accent); }
-.fg-live-text { font-size: 14px; color: var(--color-accent-700); }
+.fg-rail {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--color-sapphire);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 0;
+}
 
-.fg-clock {
+.fg-rail-logo {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 30px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
+  font-size: 24px;
+  color: var(--color-alabaster);
+  margin-bottom: 18px;
 }
 
-/* ── Contenedores de vista ─────────────────────────────────────────────── */
+.fg-rail-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  border: 0;
+  background: transparent;
+  color: var(--color-heather);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
 
-.fg-view { padding: 28px 32px 40px; }
-.fg-section-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 16px; }
-.fg-section-sub { font-size: 16px; color: var(--color-neutral-700); }
+.fg-rail-btn:hover { color: #fff; }
 
-/* ── A. Banda de alertas activas ───────────────────────────────────────── */
+.fg-rail-btn-active {
+  background: var(--color-scooter);
+  color: #fff;
+}
 
-.fg-band { margin-bottom: 36px; }
-.fg-band h2 { font-size: 32px; }
+.fg-rail-live {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.fg-rail-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-scooter);
+}
+
+.fg-rail-live-text { font-size: 11px; color: var(--color-heather); }
+
+/* ── Columna 2: alertas activas (siempre visible) ─────────────────────── */
+
+.fg-alerts {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: #fff;
+  border-right: 1px solid var(--color-heather);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fg-alerts-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.fg-alerts-head h2 { font-size: 32px; color: var(--color-sapphire); }
+.fg-alerts-summary { font-size: 15px; color: var(--color-text-secondary); }
 
 .fg-calm {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 24px 28px;
+  gap: 16px;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  padding: 28px 24px;
 }
 
-.fg-calm-icon { color: var(--color-accent); flex-shrink: 0; }
-.fg-calm-title { font-family: var(--font-heading); font-weight: 600; font-size: 30px; line-height: 1; }
-.fg-calm-sub { font-size: 16px; color: var(--color-neutral-700); margin-top: 6px; }
+.fg-calm-icon { color: var(--color-scooter); flex-shrink: 0; }
+.fg-calm-title { font-family: var(--font-heading); font-weight: 600; font-size: 32px; line-height: 1; color: var(--color-sapphire); }
+.fg-calm-sub { font-size: 16px; color: var(--color-text-secondary); margin-top: 6px; }
 
-.fg-alert-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 460px), 1fr));
-  gap: 20px;
-}
+.fg-alert-list { display: flex; flex-direction: column; gap: 16px; }
 
-/* Tarjeta de caída (severidad 3) */
+/* Tarjeta de caída (severidad 3) — pila vertical */
 
-.fg-card-fall {
-  grid-column: 1 / -1;
+.fg-fallcard {
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 28px;
-  align-items: center;
-  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
   background: var(--fall-fill);
   color: #fff;
   border: 3px solid var(--fall-deep);
+  border-radius: var(--radius);
   cursor: pointer;
   text-align: left;
   width: 100%;
   font-family: inherit;
 }
 
-.fg-card-fall .fg-room {
+.fg-fallcard-row1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+
+.fg-fallcard-room {
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 104px;
@@ -132,14 +188,19 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   font-variant-numeric: tabular-nums;
 }
 
-.fg-card-fall .fg-bed { font-size: 22px; font-weight: 500; margin-top: 16px; }
+.fg-fallcard-bed { font-size: 22px; font-weight: 500; margin-top: 12px; }
 
-.fg-card-fall .fg-col-room {
-  border-right: 1px solid rgba(255, 255, 255, 0.5);
-  padding-right: 28px;
+.fg-fallcard-elapsed { text-align: right; flex-shrink: 0; }
+.fg-fallcard-elapsed-value {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 48px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
+.fg-fallcard-elapsed-label { font-size: 15px; margin-top: 4px; }
 
-.fg-card-fall .fg-type {
+.fg-fallcard-type {
   display: flex;
   align-items: center;
   gap: 14px;
@@ -149,61 +210,52 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   line-height: 1;
 }
 
-.fg-card-fall .fg-name { font-size: 30px; font-weight: 500; margin-top: 10px; }
-.fg-card-fall .fg-meta { font-size: 17px; margin-top: 6px; }
+.fg-fallcard-name { font-size: 30px; font-weight: 500; }
+.fg-fallcard-meta { font-size: 17px; }
 
-.fg-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fg-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .fg-chip {
-  font-size: 17px;
+  font-size: 16px;
   border: 1px solid #fff;
-  padding: 2px 8px;
+  border-radius: 999px;
+  padding: 2px 10px;
   white-space: nowrap;
 }
 
 .fg-chip-strong { background: var(--fall-deep); }
 
-.fg-col-action { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
-
-.fg-card-fall .fg-elapsed {
-  font-family: var(--font-heading);
-  font-weight: 600;
-  font-size: 48px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.fg-card-fall .fg-elapsed-label { font-size: 15px; margin-top: 4px; }
-
-.fg-btn-attend-fall {
-  position: relative;
-  display: inline-flex;
+.fg-fallcard-attend {
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
+  width: 100%;
   background: #fff;
   color: var(--fall-deep);
-  border: 1px solid #fff;
-  border-radius: 0;
+  border: 0;
+  border-radius: var(--radius);
   font-family: var(--font-body);
   font-size: 24px;
   font-weight: 500;
   line-height: 1;
-  padding: 14px 32px;
+  padding: 14px;
   cursor: pointer;
 }
 
-.fg-btn-attend-fall:hover { background: var(--fall-tint); border-color: var(--fall-tint); }
+.fg-fallcard-attend:hover { background: var(--fall-tint); }
 
 /* Tarjeta de salida de cama (severidad 2) */
 
-.fg-card-exit {
+.fg-exitcard {
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 20px;
+  gap: 16px;
   align-items: center;
-  padding: 20px 22px;
+  padding: 16px 18px;
   border: 2px dashed var(--exit-border);
+  border-radius: var(--radius);
   color: var(--exit-text);
   cursor: pointer;
   text-align: left;
@@ -211,7 +263,7 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   font-family: inherit;
 }
 
-.fg-card-exit .fg-room {
+.fg-exitcard-room {
   font-family: var(--font-heading);
   font-weight: 600;
   font-size: 68px;
@@ -219,26 +271,35 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   font-variant-numeric: tabular-nums;
 }
 
-.fg-card-exit .fg-bed { font-size: 18px; font-weight: 500; margin-top: 10px; }
+.fg-exitcard-bed { font-size: 16px; font-weight: 500; margin-top: 8px; }
 
-.fg-card-exit .fg-type {
+.fg-exitcard-type {
   display: flex;
   align-items: center;
   gap: 10px;
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 32px;
+  font-size: 30px;
   line-height: 1;
   color: var(--exit-text);
 }
 
-.fg-card-exit .fg-name { font-size: 22px; font-weight: 500; margin-top: 8px; }
-.fg-card-exit .fg-meta { font-size: 15px; color: var(--exit-text-2); margin-top: 4px; }
+.fg-exitcard-name {
+  font-size: 20px;
+  font-weight: 500;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fg-exitcard-meta { font-size: 14px; color: var(--exit-text-2); margin-top: 4px; }
 
-.fg-card-exit .fg-elapsed {
+.fg-exitcard-action { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+
+.fg-exitcard-elapsed {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 36px;
+  font-size: 34px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -247,141 +308,244 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   background: #fff;
   color: var(--exit-text);
   border: 1px solid var(--exit-text);
-  font-size: 18px;
-  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-size: 17px;
+  padding: 8px 16px;
 }
 
 .fg-btn-attend-exit:hover { background: var(--exit-hatch-a); border-color: var(--exit-text); }
 
-/* ── B. Dos columnas: pacientes + atendidas ────────────────────────────── */
+/* Métrica del pie de la columna de alertas */
 
-.fg-columns { display: flex; flex-wrap: wrap; gap: 36px; }
-.fg-col-patients { flex: 2 1 680px; }
-.fg-col-handled { flex: 1 1 340px; }
-.fg-col-patients h2 { font-size: 28px; }
-.fg-col-handled h2 { font-size: 28px; }
-
-/* Lista de pacientes */
-
-.fg-plist-head,
-.fg-prow {
-  display: grid;
-  grid-template-columns: 100px minmax(0, 1fr) minmax(0, 190px) minmax(0, 200px);
-  gap: 16px;
+.fg-alerts-footer {
+  margin-top: auto;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  padding: 16px 18px;
 }
 
-.fg-plist-head {
-  font-size: 14px;
-  color: var(--color-neutral-700);
-  padding: 0 16px 8px;
-  border-bottom: 1px solid var(--color-divider);
+.fg-alerts-footer-label { font-size: 15px; color: var(--color-text-secondary); }
+.fg-alerts-footer-value {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--color-blue-lagoon);
+  font-variant-numeric: tabular-nums;
 }
 
-.fg-prow {
-  min-height: 70px;
-  padding: 10px 16px;
-  text-align: left;
+/* ── Columna 3: contenido principal ───────────────────────────────────── */
+
+.fg-main { padding: 24px 32px 32px; min-width: 0; }
+
+.fg-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: 22px;
+}
+
+.fg-topbar-title { font-size: 34px; color: var(--color-sapphire); }
+.fg-topbar-sub { font-size: 15px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.fg-topbar-right { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.fg-topbar-shift { display: flex; align-items: center; gap: 10px; }
+.fg-topbar-shift-label { font-size: 14px; color: var(--color-text-secondary); }
+
+.fg-clock {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1;
+  color: var(--color-sapphire);
+  font-variant-numeric: tabular-nums;
+}
+
+.fg-view { min-width: 0; }
+.fg-section-sub { font-size: 16px; color: var(--color-text-secondary); }
+
+/* ── Panel: grid de tarjetas de paciente ───────────────────────────────── */
+
+.fg-patient-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.fg-pcard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
   width: 100%;
+  text-align: left;
   font-family: inherit;
   color: inherit;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 
-.fg-prow-room { font-family: var(--font-heading); font-weight: 600; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
-.fg-prow-bed { font-size: 18px; font-weight: 500; }
-.fg-prow-name { font-size: 21px; font-weight: 500; }
-.fg-prow-sub { font-size: 14px; color: var(--color-neutral-700); margin-top: 2px; }
+/* El padding baja lo que sube el borde (1 → 2 → 3px) para que las tres
+   variantes midan lo mismo por fuera aunque el borde cambie de grosor. */
+.fg-pcard-normal {
+  background: #fff;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(6, 49, 84, 0.08);
+}
 
-.fg-bedcell { display: flex; align-items: flex-start; gap: 10px; }
-.fg-bedcell-main { font-size: 16px; }
-.fg-bedcell-weight { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--color-neutral-700); display: flex; align-items: center; gap: 8px; margin-top: 2px; }
-
-.fg-status { display: flex; align-items: center; gap: 10px; }
-.fg-status-normal { font-size: 17px; color: var(--color-neutral-800); }
-
-.fg-prow-exit {
+.fg-pcard-exit {
   border: 2px dashed var(--exit-border);
-  margin: 3px 0;
+  border-radius: var(--radius);
+  padding: 13px;
   color: var(--exit-text);
   cursor: pointer;
 }
 
-.fg-prow-exit .fg-prow-sub { color: var(--exit-text-2); }
-.fg-prow-exit .fg-status-label { font-size: 17px; font-weight: 700; color: var(--exit-text); }
-
-.fg-prow-fall {
+.fg-pcard-fall {
+  padding: 12px;
   background: var(--fall-fill);
   color: #fff;
   border: 3px solid var(--fall-deep);
-  margin: 3px 0;
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
-.fg-prow-fall .fg-prow-sub { color: rgba(255, 255, 255, 0.85); }
-.fg-prow-fall .fg-status-label { font-size: 19px; font-weight: 700; }
+/* Fila 1: avatar + habitación + cama */
 
-.fg-status-elapsed { font-variant-numeric: tabular-nums; font-size: 16px; }
+.fg-pcard-row1 { display: flex; align-items: center; gap: 10px; }
 
-/* Panel de atendidas */
+.fg-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px dashed var(--color-avatar-border);
+  background: var(--color-avatar-fill);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+}
 
-.fg-handled-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.fg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.fg-metric { padding: 20px 22px; margin-bottom: 20px; }
-.fg-metric-label { font-size: 15px; color: var(--color-neutral-700); }
+.fg-pcard-exit .fg-avatar { border-color: var(--exit-border); background: var(--exit-hatch-b); color: var(--exit-text); }
+.fg-pcard-fall .fg-avatar { border-style: dashed; border-color: #fff; background: var(--fall-deep); color: #fff; }
+
+.fg-pcard-room { font-family: var(--font-heading); font-weight: 600; font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.fg-pcard-normal .fg-pcard-room { color: var(--color-sapphire); }
+.fg-pcard-bed { font-size: 17px; font-weight: 500; }
+
+/* Fila 2: nombre + meta, una línea con ellipsis */
+
+.fg-pcard-name,
+.fg-pcard-meta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fg-pcard-name { font-size: 18px; font-weight: 500; }
+.fg-pcard-meta { font-size: 13px; color: var(--color-text-secondary); }
+
+.fg-pcard-exit .fg-pcard-meta { color: var(--exit-text-2); }
+.fg-pcard-fall .fg-pcard-meta { color: rgba(255, 255, 255, 0.85); }
+
+/* Fila 3: estado (izq.) + lectura de peso opcional (der.), con divisor arriba */
+
+.fg-pcard-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-row-rule);
+}
+
+.fg-pcard-exit .fg-pcard-status { border-top: 1px dashed var(--exit-border); }
+.fg-pcard-fall .fg-pcard-status { border-top: 1px solid rgba(255, 255, 255, 0.5); }
+
+.fg-pcard-state { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.fg-pcard-state-normal { color: var(--color-blue-lagoon); }
+.fg-pcard-exit .fg-pcard-state { font-weight: 700; color: var(--exit-text); }
+.fg-pcard-fall .fg-pcard-state { font-weight: 700; }
+.fg-pcard-state-elapsed { font-variant-numeric: tabular-nums; }
+
+.fg-pcard-weight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.fg-pcard-exit .fg-pcard-weight { color: inherit; opacity: 0.85; }
+.fg-pcard-fall .fg-pcard-weight { color: #fff; opacity: 0.85; }
+
+/* ── Historial ─────────────────────────────────────────────────────────── */
+
+.fg-view h1 { font-size: 34px; margin-bottom: 4px; color: var(--color-sapphire); }
+
+.fg-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  margin: 22px 0 20px;
+}
+
+.fg-metric {
+  background: #fff;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.fg-metric-label { font-size: 15px; color: var(--color-text-secondary); }
 .fg-metric-value {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 36px;
+  font-size: 56px;
   line-height: 1;
-  color: var(--color-accent-800);
+  color: var(--color-sapphire);
   font-variant-numeric: tabular-nums;
   margin-top: 6px;
 }
 
-.fg-handled-item {
-  display: grid;
-  grid-template-columns: 52px 22px 1fr auto;
-  gap: 12px;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
-}
-
-.fg-handled-time { font-size: 15px; font-variant-numeric: tabular-nums; color: var(--color-neutral-700); }
-.fg-handled-main { font-size: 16px; }
-.fg-handled-sub { font-size: 13px; color: var(--color-neutral-700); }
-.fg-handled-resp { font-size: 16px; font-variant-numeric: tabular-nums; color: var(--color-neutral-800); }
-
-/* ── Historial ─────────────────────────────────────────────────────────── */
-
-.fg-view h1 { font-size: 40px; margin-bottom: 24px; }
-
-.fg-metric-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
-  gap: 20px;
-  margin-bottom: 28px;
-}
-
-.fg-metric-grid .fg-metric { margin-bottom: 0; }
-.fg-metric-grid .fg-metric-value { font-size: 56px; }
+.fg-metric-primary .fg-metric-value { color: var(--color-blue-lagoon); }
 
 .fg-filter-row { margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
-.fg-table-wrap { overflow-x: auto; border: 1px solid var(--color-divider); }
+.fg-table-wrap {
+  background: #fff;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  padding: 4px 12px;
+  overflow-x: auto;
+}
+
 .fg-table { font-size: 17px; }
-.fg-table th { text-transform: none; letter-spacing: 0; font-size: 14px; }
-.fg-table .fg-cell-room { font-family: var(--font-heading); font-weight: 600; font-size: 22px; font-variant-numeric: tabular-nums; }
+.fg-table .fg-cell-room { font-family: var(--font-heading); font-weight: 600; font-size: 22px; color: var(--color-sapphire); font-variant-numeric: tabular-nums; }
 .fg-table .fg-cell-right { text-align: right; font-variant-numeric: tabular-nums; }
 .fg-cell-event { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
-.fg-empty { padding: 28px 14px; font-size: 16px; color: var(--color-neutral-700); }
+.fg-empty { padding: 28px 14px; font-size: 16px; color: var(--color-text-secondary); }
 
 /* ── Detalle de evento (diálogo) ───────────────────────────────────────── */
 
-.fg-dialog { width: min(680px, 100%); padding: 0; }
+.fg-dialog { width: min(680px, 100%); padding: 0; display: flex; flex-direction: column; }
 
 .fg-dialog-strip {
   display: flex;
@@ -395,16 +559,35 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 .fg-dialog-title { font-family: var(--font-heading); font-weight: 600; font-size: 34px; line-height: 1; }
 .fg-dialog-elapsed { margin-left: auto; font-family: var(--font-heading); font-weight: 600; font-size: 34px; font-variant-numeric: tabular-nums; }
 
-.fg-dialog-body { padding: 24px; display: flex; flex-direction: column; gap: 22px; }
+.fg-dialog-body { padding: 24px; display: flex; flex-direction: column; gap: 22px; overflow-y: auto; }
+
+.fg-dialog-patient { display: flex; align-items: center; gap: 16px; }
+.fg-dialog-avatar {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 1px dashed var(--color-avatar-border);
+  background: var(--color-avatar-fill);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 20px;
+  font-weight: 600;
+}
+.fg-dialog-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
 .fg-dialog-room { display: flex; align-items: baseline; gap: 12px; }
-.fg-dialog-room-n { font-family: var(--font-heading); font-weight: 600; font-size: 80px; line-height: 0.9; font-variant-numeric: tabular-nums; }
+.fg-dialog-room-n { font-family: var(--font-heading); font-weight: 600; font-size: 80px; line-height: 0.9; color: var(--color-sapphire); font-variant-numeric: tabular-nums; }
 .fg-dialog-room-bed { font-size: 28px; font-weight: 500; }
-.fg-dialog-name { font-size: 28px; font-weight: 500; }
-.fg-dialog-sub { font-size: 17px; color: var(--color-neutral-700); margin-top: 2px; }
+.fg-dialog-name { font-size: 28px; font-weight: 500; margin-top: 8px; }
+.fg-dialog-sub { font-size: 17px; color: var(--color-text-secondary); margin-top: 2px; }
 
 .fg-seq-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
 .fg-seq { display: grid; grid-template-columns: 120px 1fr; gap: 8px 16px; font-size: 16px; }
-.fg-seq-time { font-variant-numeric: tabular-nums; color: var(--color-neutral-700); }
+.fg-seq-time { font-variant-numeric: tabular-nums; color: var(--color-text-secondary); }
 
 .fg-dialog-footer {
   display: flex;
@@ -412,11 +595,27 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   align-items: center;
   gap: 12px 16px;
   padding: 20px 24px;
-  border-top: 1px solid var(--color-divider);
+  border-top: 1px solid var(--color-heather);
 }
 
 .fg-dialog-footer .fg-footer-actions { margin-left: auto; display: flex; gap: 12px; flex-wrap: wrap; }
-.fg-btn-ack { position: relative; font-size: 19px; padding: 12px 24px; }
+
+.fg-btn-ack {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-blue-lagoon);
+  color: #fff;
+  border: 1px solid var(--color-blue-lagoon);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 19px;
+  font-weight: 500;
+  padding: 12px 24px;
+  cursor: pointer;
+}
+
+.fg-btn-ack:hover { background: var(--color-sapphire); border-color: var(--color-sapphire); }
 
 /* ── Vista Sistema ─────────────────────────────────────────────────────── */
 
@@ -427,20 +626,35 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   margin-bottom: 36px;
 }
 
-.fg-spec { padding: 20px 22px; }
-.fg-spec-level { font-size: 14px; color: var(--color-neutral-700); }
-.fg-spec-name { font-family: var(--font-heading); font-weight: 600; font-size: 32px; line-height: 1; margin: 6px 0 12px; }
+.fg-spec {
+  background: #fff;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+
+.fg-spec-swatch {
+  height: 96px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.fg-spec-level { font-size: 14px; color: var(--color-text-secondary); }
+.fg-spec-name { font-family: var(--font-heading); font-weight: 600; font-size: 32px; line-height: 1; margin: 6px 0 12px; color: var(--color-sapphire); }
 .fg-spec-row { display: grid; grid-template-columns: 110px 1fr; gap: 6px 12px; font-size: 15px; padding: 4px 0; }
-.fg-spec-key { color: var(--color-neutral-700); }
+.fg-spec-key { color: var(--color-text-secondary); }
 
 .fg-flow { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 36px; }
-.fg-flow-step { padding: 14px 18px; font-size: 17px; }
-.fg-flow-arrow { font-size: 22px; color: var(--color-neutral-600); }
+.fg-flow-step { padding: 14px 18px; border-radius: var(--radius); font-size: 17px; background: #fff; border: 1px solid var(--color-heather); }
+.fg-flow-arrow { font-size: 22px; color: var(--color-text-secondary); }
 
 .fg-scale { display: flex; flex-direction: column; gap: 6px; margin-bottom: 36px; }
 .fg-scale-row { display: flex; align-items: baseline; gap: 16px; }
-.fg-scale-px { font-size: 13px; color: var(--color-neutral-700); width: 56px; font-variant-numeric: tabular-nums; }
-.fg-scale-sample { font-family: var(--font-heading); font-weight: 600; line-height: 1; }
+.fg-scale-px { font-size: 13px; color: var(--color-text-secondary); width: 56px; font-variant-numeric: tabular-nums; }
+.fg-scale-sample { font-family: var(--font-heading); font-weight: 600; line-height: 1; color: var(--color-sapphire); }
 
 /* ── Footer de demo (solo hackathon) ───────────────────────────────────── */
 
@@ -449,10 +663,10 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 16px 32px;
-  border-top: 1px solid var(--color-divider);
-  background: var(--color-surface);
+  margin-top: 28px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-heather);
 }
 
-.fg-demo-label { font-size: 14px; color: var(--color-neutral-700); margin-right: auto; }
+.fg-demo-label { font-size: 14px; color: var(--color-text-secondary); margin-right: auto; }
 .fg-demo .btn { font-size: 15px; padding: 8px 16px; }

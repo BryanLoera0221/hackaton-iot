@@ -5,7 +5,7 @@ import { Check, OctagonAlert, TriangleAlert } from "lucide-react";
 import type { ActiveAlert, Patient } from "~/domain/types";
 import { elapsed, hmsTenths, riskLabel, typeLabel } from "~/app/_lib/format";
 import { FALLGUARD_CONFIG } from "~/mock/data";
-import { Corners, Seg, toOptions } from "./primitives";
+import { Seg, initials, toOptions } from "./primitives";
 
 const STROKE = 1.5;
 
@@ -61,14 +61,12 @@ export function EventDialog({
   return (
     <div className="dialog-backdrop" onClick={onClose}>
       <div
-        className="dialog blueprint fg-dialog"
+        className="dialog fg-dialog"
         role="dialog"
         aria-modal="true"
         aria-label={`${typeLabel[alert.type]} · habitación ${patient.room}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <Corners />
-
         <div className={`fg-dialog-strip ${isFall ? "fg-dialog-strip-fall" : "fg-dialog-strip-exit hatch"}`}>
           {isFall ? (
             <OctagonAlert size={34} strokeWidth={STROKE} aria-hidden />
@@ -80,16 +78,19 @@ export function EventDialog({
         </div>
 
         <div className="fg-dialog-body">
-          <div>
-            <div className="fg-dialog-room">
-              <span className="fg-dialog-room-n">{patient.room}</span>
-              <span className="fg-dialog-room-bed">Cama {patient.bed}</span>
+          <div className="fg-dialog-patient">
+            <div className="fg-dialog-avatar" aria-hidden>
+              {patient.photoUrl ? <img src={patient.photoUrl} alt="" /> : initials(patient.name)}
             </div>
-            <div className="fg-dialog-name" style={{ marginTop: 12 }}>
-              {patient.name}
-            </div>
-            <div className="fg-dialog-sub">
-              {patient.age} años · {riskLabel[patient.risk]}
+            <div>
+              <div className="fg-dialog-room">
+                <span className="fg-dialog-room-n">{patient.room}</span>
+                <span className="fg-dialog-room-bed">Cama {patient.bed}</span>
+              </div>
+              <div className="fg-dialog-name">{patient.name}</div>
+              <div className="fg-dialog-sub">
+                {patient.age} años · {riskLabel[patient.risk]}
+              </div>
             </div>
           </div>
 
@@ -107,7 +108,7 @@ export function EventDialog({
         </div>
 
         <div className="fg-dialog-footer">
-          <span className="fg-header-label">Atiende</span>
+          <span className="fg-topbar-shift-label">Atiende</span>
           <Seg
             name="dialog-nurse"
             value={nurse}
@@ -121,8 +122,7 @@ export function EventDialog({
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cerrar
             </button>
-            <button type="button" className="btn blueprint fg-btn-ack" onClick={onAttend}>
-              <Corners />
+            <button type="button" className="fg-btn-ack" onClick={onAttend}>
               <Check size={22} strokeWidth={STROKE} aria-hidden />
               Marcar como atendida
             </button>

@@ -1,14 +1,15 @@
 "use client";
 
-/** Marcas de registro "+" en las esquinas de un objeto enmarcado (Industry). */
-export function Corners() {
-  return (
-    <>
-      <i className="corner tl" />
-      <i className="corner tr" />
-      <i className="corner bl" />
-      <i className="corner br" />
-    </>
+import { OctagonAlert, TriangleAlert } from "lucide-react";
+
+const STROKE = 1.5;
+
+/** Icono chico de severidad sobre fondo claro (listas y tablas). */
+export function SeverityIcon({ type, size = 20 }: { type: "fall" | "exit"; size?: number }) {
+  return type === "fall" ? (
+    <OctagonAlert size={size} strokeWidth={STROKE} color="#b3261e" aria-hidden />
+  ) : (
+    <TriangleAlert size={size} strokeWidth={STROKE} color="#a06b12" aria-hidden />
   );
 }
 
@@ -51,4 +52,14 @@ export function Seg<T extends string>({
 /** Lista de nombres → opciones del control segmentado. */
 export function toOptions(values: readonly string[]) {
   return values.map((v) => ({ value: v, label: v }));
+}
+
+/** Iniciales de un nombre, para el placeholder de foto del paciente. */
+export function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join("");
 }

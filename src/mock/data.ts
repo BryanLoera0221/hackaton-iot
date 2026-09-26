@@ -17,8 +17,8 @@
 import type { HistoryEntry, Patient } from "~/domain/types";
 
 export const FALLGUARD_CONFIG = {
-  /** Se pinta junto al logo, arriba a la izquierda. */
-  station: "Estación de enfermería · Piso 3, ala B",
+  /** Se pinta en el subtítulo del Panel: "{floor} · N camas · N ocupadas". */
+  floor: "Piso 3, ala B",
 
   /** Enfermeros del turno. El primero es el que queda seleccionado al abrir. */
   nurses: ["L. Ramírez", "M. Soto", "J. Herrera"],

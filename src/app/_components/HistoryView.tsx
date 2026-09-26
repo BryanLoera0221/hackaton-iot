@@ -2,8 +2,7 @@
 
 import type { HistoryEntry, HistoryFilter, Patient } from "~/domain/types";
 import { hms, responseTime, typeLabelShort } from "~/app/_lib/format";
-import { Corners, Seg } from "./primitives";
-import { SeverityIcon } from "./HandledPanel";
+import { Seg, SeverityIcon } from "./primitives";
 
 const FILTERS = [
   { value: "todas", label: "Todas" },
@@ -11,10 +10,19 @@ const FILTERS = [
   { value: "exit", label: "Salidas de cama" },
 ] as const satisfies readonly { value: HistoryFilter; label: string }[];
 
-function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Metric({
+  label,
+  value,
+  sub,
+  primary = false,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  primary?: boolean;
+}) {
   return (
-    <div className="fg-metric blueprint">
-      <Corners />
+    <div className={`fg-metric ${primary ? "fg-metric-primary" : ""}`}>
       <div className="fg-metric-label">{label}</div>
       <div className="fg-metric-value">{value}</div>
       {sub && <div className="fg-metric-label">{sub}</div>}
@@ -40,11 +48,10 @@ export function HistoryView({
 
   return (
     <div className="fg-view">
-      <h1>Historial de alertas</h1>
-
       {/* La métrica del pitch: cuánto baja el tiempo de respuesta con FallGuard. */}
       <div className="fg-metric-grid">
         <Metric
+          primary
           label="Tiempo promedio de respuesta"
           value={fmt(avgResponse())}
           sub={`${history.length} alertas atendidas en este turno`}

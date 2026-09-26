@@ -1,32 +1,36 @@
 /**
- * Industry — design system base (recreado desde el handoff).
- * Look de plano técnico: azul acero, esquinas rectas, bordes de 1px,
- * marcas de registro "+" en las esquinas de los objetos enmarcados.
+ * Industry — design system base (v2, paleta teal clínica).
  *
- * Aquí solo viven tokens y primitivas genéricas. Lo específico de FallGuard
- * (severidades, tarjetas de alerta, filas de paciente) está en fallguard.css.
+ * v2 abandona las marcas de registro "+" del wireframe original: superficies
+ * blancas, radio 8px, bordes hairline Heather. Aquí solo viven tokens y
+ * primitivas nativas (botones, seg, tabla, diálogo). Lo específico de
+ * FallGuard (severidades, columna de alertas, tarjetas) está en fallguard.css.
  */
 
 :root {
-  --color-bg: #f2f2f3;
-  --color-surface: #e9e9ea;
-  --color-text: #1d1f20;
-  --color-accent: #5980a6;
-  --color-divider: color-mix(in srgb, var(--color-text) 16%, transparent);
+  --color-scooter: #2f9d94;
+  --color-alabaster: #f7f6f2;
+  --color-heather: #bcc5cc;
+  --color-blue-lagoon: #025f67;
+  --color-sapphire: #063154;
 
-  --color-accent-100: #eef6ff;
-  --color-accent-500: #749dc4;
-  --color-accent-600: #597ea3;
-  --color-accent-700: #416180;
-  --color-accent-800: #2c455d;
-  --color-accent-900: #1d2d3d;
+  --color-bg: var(--color-alabaster);
+  --color-surface: #ffffff;
+  --color-text: #0b2236;
+  --color-text-secondary: #51606c;
+  --color-text-body: #2a3f4f;
+  --color-divider: var(--color-heather);
+  --color-row-rule: #dfe3e6;
+  --color-avatar-fill: #e6ebee;
+  --color-avatar-border: #9aa7b1;
 
-  --color-neutral-600: #7a7a7d;
-  --color-neutral-700: #5d5d60;
-  --color-neutral-800: #424244;
+  --color-accent: var(--color-scooter);
 
   --font-heading: "Barlow Condensed", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Barlow", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --radius: 8px;
+  --radius-dialog: 10px;
 
   --space-1: 3.4px;
   --space-2: 6.8px;
@@ -44,51 +48,9 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-scooter);
   outline-offset: 2px;
 }
-
-/* ── Marco "blueprint" con marcas de registro ──────────────────────────── */
-
-.blueprint {
-  position: relative;
-  border: 1px solid var(--color-divider);
-  background: var(--color-bg);
-}
-
-.corner {
-  position: absolute;
-  width: 9px;
-  height: 9px;
-  pointer-events: none;
-  opacity: 0.75;
-}
-
-.corner::before,
-.corner::after {
-  content: "";
-  position: absolute;
-  background: currentColor;
-}
-
-.corner::before {
-  top: 4px;
-  left: 0;
-  width: 9px;
-  height: 1px;
-}
-
-.corner::after {
-  left: 4px;
-  top: 0;
-  width: 1px;
-  height: 9px;
-}
-
-.corner.tl { top: 4px; left: 4px; }
-.corner.tr { top: 4px; right: 4px; }
-.corner.bl { bottom: 4px; left: 4px; }
-.corner.br { bottom: 4px; right: 4px; }
 
 /* ── Botones ───────────────────────────────────────────────────────────── */
 
@@ -97,9 +59,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border: 1px solid var(--color-accent-700);
-  border-radius: 0;
-  background: var(--color-accent-700);
+  border: 1px solid var(--color-blue-lagoon);
+  border-radius: var(--radius);
+  background: var(--color-blue-lagoon);
   color: #fff;
   font-family: var(--font-body);
   font-size: 16px;
@@ -107,25 +69,25 @@ body {
   line-height: 1.1;
   padding: 10px 20px;
   cursor: pointer;
-  transition: background-color 0.12s ease, color 0.12s ease;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
 }
 
-.btn:hover { background: var(--color-accent-800); border-color: var(--color-accent-800); }
-.btn:active { background: var(--color-accent-900); border-color: var(--color-accent-900); }
+.btn:hover { background: var(--color-sapphire); border-color: var(--color-sapphire); }
+.btn:active { background: var(--color-sapphire); border-color: var(--color-sapphire); }
 
 .btn-secondary {
-  background: transparent;
-  color: var(--color-accent-800);
-  border-color: var(--color-accent-700);
+  background: #fff;
+  color: var(--color-sapphire);
+  border-color: var(--color-heather);
 }
 
-.btn-secondary:hover { background: var(--color-accent-100); border-color: var(--color-accent-700); }
-.btn-secondary:active { background: var(--color-accent-100); }
+.btn-secondary:hover { background: var(--color-alabaster); border-color: var(--color-heather); }
+.btn-secondary:active { background: var(--color-alabaster); }
 
 .btn-ghost {
   background: transparent;
   border-color: transparent;
-  color: var(--color-accent-700);
+  color: var(--color-blue-lagoon);
   padding: 6px 10px;
   font-size: 15px;
 }
@@ -133,7 +95,7 @@ body {
 .btn-ghost:hover {
   background: transparent;
   border-color: transparent;
-  color: var(--color-accent-900);
+  color: var(--color-sapphire);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -143,8 +105,10 @@ body {
 .seg {
   display: inline-flex;
   flex-wrap: wrap;
-  border: 1px solid var(--color-divider);
-  background: var(--color-bg);
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  background: #fff;
+  overflow: hidden;
 }
 
 .seg-opt {
@@ -156,23 +120,23 @@ body {
   line-height: 1.1;
   white-space: nowrap;
   cursor: pointer;
-  color: var(--color-neutral-800);
-  border-right: 1px solid var(--color-divider);
+  color: var(--color-text-body);
+  border-right: 1px solid var(--color-heather);
   transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .seg-opt:last-child { border-right: 0; }
-.seg-opt:hover { background: var(--color-surface); }
+.seg-opt:hover { background: var(--color-alabaster); }
 .seg-opt input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 
 .seg-opt:has(input:checked) {
-  background: var(--color-accent);
+  background: var(--color-scooter);
   color: #fff;
 }
 
 .seg-opt:has(input:focus-visible) {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-scooter);
+  outline-offset: -2px;
 }
 
 .seg-sm .seg-opt { padding: 6px 12px; font-size: 14px; }
@@ -182,27 +146,27 @@ body {
 .table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--color-bg);
+  background: #fff;
 }
 
 .table th {
   text-align: left;
-  font-weight: 600;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-neutral-700);
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-secondary);
   padding: 10px 14px;
-  border-bottom: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-row-rule);
 }
 
 .table td {
   padding: 12px 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-text) 8%, transparent);
+  border-bottom: 1px solid var(--color-row-rule);
   vertical-align: middle;
 }
 
-.table tbody tr:hover { background: var(--color-surface); }
+.table tbody tr:hover { background: var(--color-alabaster); }
 
 /* ── Diálogo ───────────────────────────────────────────────────────────── */
 
@@ -214,15 +178,15 @@ body {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: color-mix(in srgb, var(--color-text) 55%, transparent);
+  background: rgba(6, 49, 84, 0.55);
 }
 
 .dialog {
-  background: var(--color-bg);
-  border: 1px solid var(--color-text);
-  border-radius: 0;
+  background: var(--color-alabaster);
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius-dialog);
   max-height: calc(100vh - 48px);
-  overflow: auto;
+  overflow: hidden;
 }
 
 /* ── Utilidades ────────────────────────────────────────────────────────── */

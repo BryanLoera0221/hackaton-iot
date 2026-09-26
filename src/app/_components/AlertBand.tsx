@@ -2,8 +2,7 @@
 
 import { Check, Circle, OctagonAlert, TriangleAlert } from "lucide-react";
 import type { ActiveAlert, Patient } from "~/domain/types";
-import { alertSummary, elapsed, hms, minutesAgo, riskLabel } from "~/app/_lib/format";
-import { Corners } from "./primitives";
+import { alertSummary, elapsed, hms, minutesAgo, responseTime, riskLabel } from "~/app/_lib/format";
 
 const STROKE = 1.5;
 
@@ -38,50 +37,46 @@ function FallCard({
   const escalatedAfter = alert.exitAt != null ? Math.round((alert.t - alert.exitAt) / 1000) : null;
 
   return (
-    <div className="fg-card-fall fg-pulse blueprint" {...cardProps(onOpen)}>
-      <Corners />
-
-      <div className="fg-col-room">
-        <div className="fg-room">{patient.room}</div>
-        <div className="fg-bed">Cama {patient.bed}</div>
-      </div>
-
-      <div>
-        <div className="fg-type">
-          <OctagonAlert size={44} strokeWidth={STROKE} aria-hidden />
-          Caída confirmada
-        </div>
-        <div className="fg-name">{patient.name}</div>
-        <div className="fg-meta">
-          {patient.age} años · {riskLabel[patient.risk]} · detectada a las {hms(alert.t)}
-        </div>
-
-        {escalatedAfter != null && (
-          <div className="fg-chips">
-            <span className="fg-chip">Salió de cama {hms(alert.exitAt!)}</span>
-            <span className="fg-chip fg-chip-strong">Caída {escalatedAfter} s después</span>
-          </div>
-        )}
-      </div>
-
-      <div className="fg-col-action">
+    <div className="fg-fallcard fg-pulse" {...cardProps(onOpen)}>
+      <div className="fg-fallcard-row1">
         <div>
-          <div className="fg-elapsed">{elapsed(alert.exitAt ?? alert.t, now)}</div>
-          <div className="fg-elapsed-label">sin atender</div>
+          <div className="fg-fallcard-room">{patient.room}</div>
+          <div className="fg-fallcard-bed">Cama {patient.bed}</div>
         </div>
-        <button
-          type="button"
-          className="fg-btn-attend-fall blueprint"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAttend();
-          }}
-        >
-          <Corners />
-          <Check size={26} strokeWidth={STROKE} aria-hidden />
-          Atender
-        </button>
+        <div className="fg-fallcard-elapsed">
+          <div className="fg-fallcard-elapsed-value">{elapsed(alert.exitAt ?? alert.t, now)}</div>
+          <div className="fg-fallcard-elapsed-label">sin atender</div>
+        </div>
       </div>
+
+      <div className="fg-fallcard-type">
+        <OctagonAlert size={40} strokeWidth={STROKE} aria-hidden />
+        Caída confirmada
+      </div>
+
+      <div className="fg-fallcard-name">{patient.name}</div>
+      <div className="fg-fallcard-meta">
+        {patient.age} años · {riskLabel[patient.risk]} · {hms(alert.t)}
+      </div>
+
+      {escalatedAfter != null && (
+        <div className="fg-chips">
+          <span className="fg-chip">Salió de cama {hms(alert.exitAt!)}</span>
+          <span className="fg-chip fg-chip-strong">Caída {escalatedAfter} s después</span>
+        </div>
+      )}
+
+      <button
+        type="button"
+        className="fg-fallcard-attend"
+        onClick={(e) => {
+          e.stopPropagation();
+          onAttend();
+        }}
+      >
+        <Check size={26} strokeWidth={STROKE} aria-hidden />
+        Atender
+      </button>
     </div>
   );
 }
@@ -100,30 +95,26 @@ function ExitCard({
   onAttend: () => void;
 }) {
   return (
-    <div className="fg-card-exit hatch" {...cardProps(onOpen)}>
-      <Corners />
-
+    <div className="fg-exitcard hatch" {...cardProps(onOpen)}>
       <div>
-        <div className="fg-room">{patient.room}</div>
-        <div className="fg-bed">Cama {patient.bed}</div>
+        <div className="fg-exitcard-room">{patient.room}</div>
+        <div className="fg-exitcard-bed">Cama {patient.bed}</div>
       </div>
 
       <div>
-        <div className="fg-type">
-          <TriangleAlert size={30} strokeWidth={STROKE} aria-hidden />
+        <div className="fg-exitcard-type">
+          <TriangleAlert size={26} strokeWidth={STROKE} aria-hidden />
           Fuera de cama
         </div>
-        <div className="fg-name">{patient.name}</div>
-        <div className="fg-meta">
-          {riskLabel[patient.risk]} · desde las {hms(alert.t)}
-        </div>
+        <div className="fg-exitcard-name">{patient.name}</div>
+        <div className="fg-exitcard-meta">desde las {hms(alert.t)}</div>
       </div>
 
-      <div className="fg-col-action">
-        <div className="fg-elapsed">{elapsed(alert.t, now)}</div>
+      <div className="fg-exitcard-action">
+        <div className="fg-exitcard-elapsed">{elapsed(alert.t, now)}</div>
         <button
           type="button"
-          className="btn btn-secondary fg-btn-attend-exit"
+          className="fg-btn-attend-exit"
           onClick={(e) => {
             e.stopPropagation();
             onAttend();
@@ -142,6 +133,7 @@ export function AlertBand({
   now,
   patientCount,
   lastHandledAt,
+  avgResponseToday,
   onOpen,
   onAttend,
 }: {
@@ -150,6 +142,7 @@ export function AlertBand({
   now: number;
   patientCount: number;
   lastHandledAt: number | null;
+  avgResponseToday: number | null;
   onOpen: (alertId: string) => void;
   onAttend: (alertId: string) => void;
 }) {
@@ -157,27 +150,26 @@ export function AlertBand({
   const exits = alerts.length - falls;
 
   return (
-    <section className="fg-band">
-      <div className="fg-section-head">
+    <section className="fg-alerts">
+      <div className="fg-alerts-head">
         <h2>Alertas activas</h2>
-        {alerts.length > 0 && <span className="fg-section-sub">{alertSummary(falls, exits)}</span>}
+        {alerts.length > 0 && <span className="fg-alerts-summary">{alertSummary(falls, exits)}</span>}
       </div>
 
       {alerts.length === 0 ? (
-        <div className="fg-calm blueprint">
-          <Corners />
-          <Circle size={32} strokeWidth={STROKE} className="fg-calm-icon" aria-hidden />
+        <div className="fg-calm">
+          <Circle size={36} strokeWidth={STROKE} className="fg-calm-icon" aria-hidden />
           <div>
             <div className="fg-calm-title">Sin alertas activas</div>
             <div className="fg-calm-sub">
-              {patientCount} pacientes en observación
+              {patientCount} pacientes en cama
               {lastHandledAt != null &&
                 ` · última alerta atendida hace ${minutesAgo(lastHandledAt, now)} min`}
             </div>
           </div>
         </div>
       ) : (
-        <div className="fg-alert-grid">
+        <div className="fg-alert-list">
           {alerts.map((alert) => {
             const patient = patientById.get(alert.pid);
             if (!patient) return null;
@@ -198,6 +190,13 @@ export function AlertBand({
           })}
         </div>
       )}
+
+      <div className="fg-alerts-footer">
+        <span className="fg-alerts-footer-label">Respuesta promedio hoy</span>
+        <span className="fg-alerts-footer-value">
+          {avgResponseToday == null ? "—" : responseTime(avgResponseToday)}
+        </span>
+      </div>
     </section>
   );
 }
