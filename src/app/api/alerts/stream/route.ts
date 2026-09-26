@@ -1,4 +1,10 @@
-import { ALERT_EVENT, fallAlertEvents, type FallAlertPayload } from "~/server/events";
+import {
+  ALERT_ACK_EVENT,
+  ALERT_EVENT,
+  alertEvents,
+  type AlertAckPayload,
+  type AlertPayload,
+} from "~/server/events";
 
 export const runtime = "nodejs";
 // El stream no termina nunca: sin esto, `next build` intenta prerenderizarlo
@@ -16,8 +22,10 @@ export async function GET(req: Request) {
         );
       };
 
-      const onAlert = (payload: FallAlertPayload) => send("fall-alert", payload);
-      fallAlertEvents.on(ALERT_EVENT, onAlert);
+      const onAlert = (payload: AlertPayload) => send("alert", payload);
+      const onAck = (payload: AlertAckPayload) => send("alert-acknowledged", payload);
+      alertEvents.on(ALERT_EVENT, onAlert);
+      alertEvents.on(ALERT_ACK_EVENT, onAck);
 
       // Comentario de "keep-alive" cada 20s: algunos proxies cierran conexiones
       // idle. No es un evento real, el cliente lo ignora.
@@ -29,7 +37,8 @@ export async function GET(req: Request) {
 
       req.signal.addEventListener("abort", () => {
         clearInterval(heartbeat);
-        fallAlertEvents.off(ALERT_EVENT, onAlert);
+        alertEvents.off(ALERT_EVENT, onAlert);
+        alertEvents.off(ALERT_ACK_EVENT, onAck);
         controller.close();
       });
     },

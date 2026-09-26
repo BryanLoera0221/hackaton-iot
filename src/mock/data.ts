@@ -35,9 +35,10 @@ export const FALLGUARD_CONFIG = {
 
   /**
    * `false` = todo sale de este archivo (modo demo/diseño).
-   * `true`  = el dashboard escucha /api/alerts/stream (SSE) para eventos reales.
+   * `true`  = pacientes e historial salen de tRPC y los eventos en vivo
+   * llegan por /api/alerts/stream (SSE) — requiere `npx prisma db seed`.
    */
-  useLiveFeed: false,
+  useLiveFeed: true,
 } as const;
 
 /**

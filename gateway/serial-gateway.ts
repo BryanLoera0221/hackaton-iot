@@ -8,17 +8,17 @@ const SERIAL_PORT = process.env.SERIAL_PORT ?? "/dev/ttyACM0";
 const BAUD_RATE = Number(process.env.BAUD_RATE ?? 9600);
 const APP_URL = process.env.APP_URL ?? "http://localhost:3000";
 
-async function reportFall(patientExternalId: string) {
+async function reportEvent(patientExternalId: string, type: "fall" | "exit") {
   try {
     const res = await fetch(`${APP_URL}/api/alerts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patientExternalId }),
+      body: JSON.stringify({ patientExternalId, type }),
     });
     if (!res.ok) {
       console.error(`[gateway] el server respondió ${res.status}:`, await res.text());
     } else {
-      console.log(`[gateway] alerta reportada para paciente ${patientExternalId}`);
+      console.log(`[gateway] ${type} reportada para paciente ${patientExternalId}`);
     }
   } catch (err) {
     console.error("[gateway] no se pudo contactar la app (¿está corriendo `npm run dev`?):", err);
@@ -45,10 +45,13 @@ function start() {
     if (!clean) return;
     console.log(`[gateway] <- ${clean}`);
 
-    // Formato esperado desde el Arduino: "FALL,<patientId>"
+    // Formato esperado desde el Arduino: "FALL,<patientId>". "BEDEXIT,<patientId>"
+    // queda listo para cuando haya un sensor de salida de cama (hoy no existe).
     const [tag, patientId] = clean.split(",");
     if (tag === "FALL" && patientId) {
-      void reportFall(patientId.trim());
+      void reportEvent(patientId.trim(), "fall");
+    } else if (tag === "BEDEXIT" && patientId) {
+      void reportEvent(patientId.trim(), "exit");
     }
   });
 }

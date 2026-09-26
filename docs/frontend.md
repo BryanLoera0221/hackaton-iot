@@ -1,8 +1,15 @@
 # Frontend FallGuard — cómo cambiar los datos
 
-El dashboard funciona hoy con datos mock. **Todo lo que se ve sale de un solo
-archivo: [`src/mock/data.ts`](../src/mock/data.ts).** Ningún componente tiene
-datos quemados.
+`FALLGUARD_CONFIG.useLiveFeed` decide de dónde sale todo:
+- `false` → mock puro. Todo lo que se ve sale de un solo archivo:
+  [`src/mock/data.ts`](../src/mock/data.ts). Ningún componente tiene datos
+  quemados.
+- `true` (default hoy) → pacientes e historial salen de tRPC
+  (`api.patients.list`, `api.alerts.list`) contra la base Prisma, y los
+  eventos en vivo llegan por SSE (`/api/alerts/stream`). Ver
+  [`docs/setup-backend.md`](./setup-backend.md) para levantar la base y el
+  gateway. El botón de abajo del dashboard cambia solo según la bandera:
+  "Demo" (mock, local) o "Demo en vivo" (pega al backend real).
 
 ## Cambiar la demo
 
@@ -28,20 +35,27 @@ export const INITIAL_ALERTS = [
 ];
 ```
 
-## Pasar a datos reales
+## Cómo está conectado a datos reales
 
-Hay tres puntos marcados con `CAMBIO A DATOS REALES` en
-[`src/app/_lib/useFallGuard.ts`](../src/app/_lib/useFallGuard.ts):
+Los tres puntos marcados con `CAMBIO A DATOS REALES` en
+[`src/app/_lib/useFallGuard.ts`](../src/app/_lib/useFallGuard.ts) ya están
+resueltos:
 
-1. **Pacientes** — reemplazar `PATIENTS` por `api.patients.list.useQuery()`.
-2. **Atender** — llamar `api.alerts.acknowledge.mutate({ id, by: nurse })` y que
-   el server reemita por SSE, para que todas las pantallas se limpien juntas.
-3. **Eventos en vivo** — poner `useLiveFeed: true`; el hook se suscribe a
-   `/api/alerts/stream`. Requiere que los IDs de paciente que manda el gateway
-   coincidan con los del frontend (por eso conviene hacer 1 primero).
+1. **Pacientes** — `api.patients.list.useQuery()`, mapeado de la fila de
+   Prisma al `Patient` de dominio.
+2. **Atender** — `api.alerts.acknowledge.mutate({ id, by: nurse })`; el
+   server reemite `alert-acknowledged` por SSE para que todas las pantallas
+   se limpien juntas.
+3. **Eventos en vivo** — con `useLiveFeed: true`, el hook se suscribe a
+   `/api/alerts/stream` (`alert` y `alert-acknowledged`). Los IDs de paciente
+   son el `externalId` de Prisma, que es el mismo string plano
+   (`"301A"`) que usa el dominio del frontend — no hace falta mapear nada
+   más.
 
 La forma de los datos ya es la definitiva: los componentes consumen los tipos de
 [`src/domain/types.ts`](../src/domain/types.ts) y no les importa de dónde salen.
+Volver a `useLiveFeed: false` sigue dando una demo 100% mock funcional —
+`PATIENTS`/`INITIAL_ALERTS`/`INITIAL_HISTORY` no se tocaron.
 
 ## Estructura
 

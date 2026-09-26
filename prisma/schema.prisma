@@ -11,24 +11,35 @@ datasource db {
 
 model Room {
   id       String    @id @default(cuid())
-  label    String // ej. "302-A"
+  label    String // número de habitación, ej. "301"
   patients Patient[]
 }
 
 model Patient {
-  id         String      @id @default(cuid())
-  externalId String      @unique // el ID que manda el Arduino, ej. "101"
+  id         String   @id @default(cuid())
+  externalId String   @unique // ID plano que manda el Arduino/gateway, ej. "301A" (habitación+cama)
   name       String
+  bed        String // letra de camilla dentro de la habitación, ej. "A"
+  age        Int
+  // "alto" | "medio" | "bajo" — sin enum de Prisma: el conector sqlite no los soporta,
+  // se valida con zod en la capa de API.
+  risk       String
+  weightKg   Float?
+  photoUrl   String?
   roomId     String?
-  room       Room?       @relation(fields: [roomId], references: [id])
-  alerts     FallAlert[]
+  room       Room?    @relation(fields: [roomId], references: [id])
+  alerts     Alert[]
 }
 
-model FallAlert {
+model Alert {
   id             String    @id @default(cuid())
   patientId      String
   patient        Patient   @relation(fields: [patientId], references: [id])
+  // "fall" | "exit" — mismo motivo que arriba, sin enum de Prisma.
+  type           String    @default("fall")
   createdAt      DateTime  @default(now())
+  // Si escaló de salida de cama a caída, la hora de la salida original.
+  exitAt         DateTime?
   acknowledged   Boolean   @default(false)
   acknowledgedAt DateTime?
   acknowledgedBy String?

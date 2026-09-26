@@ -12,6 +12,7 @@ import { HistoryView } from "~/app/_components/HistoryView";
 import { SystemView } from "~/app/_components/SystemView";
 import { EventDialog } from "~/app/_components/EventDialog";
 import { DemoFooter } from "~/app/_components/DemoFooter";
+import { LiveDemoFooter } from "~/app/_components/LiveDemoFooter";
 
 export default function DashboardPage() {
   const state = useFallGuard();
@@ -99,7 +100,12 @@ export default function DashboardPage() {
 
         {tab === "sistema" && <SystemView />}
 
-        {FALLGUARD_CONFIG.showDemoFooter && <DemoFooter state={state} />}
+        {FALLGUARD_CONFIG.showDemoFooter &&
+          (FALLGUARD_CONFIG.useLiveFeed ? (
+            <LiveDemoFooter state={state} />
+          ) : (
+            <DemoFooter state={state} />
+          ))}
       </div>
 
       {detailAlert && detailPatient && (
