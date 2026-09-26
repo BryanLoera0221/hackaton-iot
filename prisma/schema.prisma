@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // SQLite: cero setup para el hackathon. Cambia a "postgresql" si ya tienes
+  // una DB corriendo y ajusta DATABASE_URL.
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id       String    @id @default(cuid())
+  label    String // ej. "302-A"
+  patients Patient[]
+}
+
+model Patient {
+  id         String      @id @default(cuid())
+  externalId String      @unique // el ID que manda el Arduino, ej. "101"
+  name       String
+  roomId     String?
+  room       Room?       @relation(fields: [roomId], references: [id])
+  alerts     FallAlert[]
+}
+
+model FallAlert {
+  id             String    @id @default(cuid())
+  patientId      String
+  patient        Patient   @relation(fields: [patientId], references: [id])
+  createdAt      DateTime  @default(now())
+  acknowledged   Boolean   @default(false)
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
+}

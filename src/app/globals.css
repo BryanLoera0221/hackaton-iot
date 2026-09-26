@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Los estilos del dashboard viven en src/styles/industry.css (sistema de
+   diseño) y src/styles/fallguard.css (severidades y pantallas). Tailwind se
+   queda para el reset y por si quieres extender con utilidades. */
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  scrollbar-width: thin;
+}
