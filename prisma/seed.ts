@@ -47,13 +47,21 @@ async function main() {
     patientByExternalId.set(p.id, patient.id);
   }
 
-  // Dispositivo real del prototipo (firmware "Anticaídas", Mega+WiFi R3),
-  // mapeado a una cama de prueba para poder golpear /api/iot/fall sin
-  // hardware. Ver docs/setup-backend.md.
+  // Dispositivos reales del prototipo, mapeados a la misma cama de prueba
+  // (301A) para que ambos sensores apunten al mismo paciente en la demo.
+  // Ver docs/setup-backend.md.
   await db.device.create({
     data: {
       id: "FALL-001",
       kind: "fall",
+      patientId: patientByExternalId.get("301A")!,
+    },
+  });
+
+  await db.device.create({
+    data: {
+      id: "BED-001",
+      kind: "bed",
       patientId: patientByExternalId.get("301A")!,
     },
   });

@@ -8,13 +8,15 @@ import { markDeviceOnline } from "~/server/device-status";
 export const runtime = "nodejs";
 
 /**
- * Provisional: todavía no existe un script/firmware real para la Raspberry
- * Pi, así que este contrato (nombre de ruta y forma del body) puede ajustarse
- * sin drama el día que exista — nada más del sistema depende de él todavía.
+ * Contrato fijo por el script real de la Raspberry Pi (sensor de cama,
+ * HX711): POST { deviceId, occupied: 0 | 1 } sin autenticación. Manda al
+ * arrancar, en cada cambio de valor y cada 30s como latido — por eso
+ * `reportBedStatus` tiene que ser idempotente ante el mismo valor repetido
+ * (ya lo es: no-op si no cambia nada respecto a la alerta activa).
  */
 const bodySchema = z.object({
   deviceId: z.string().min(1),
-  occupied: z.boolean(),
+  occupied: z.union([z.literal(0), z.literal(1)]),
 });
 
 export async function POST(req: Request) {
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "body inválido, se espera { deviceId: string, occupied: boolean }" },
+      { error: "body inválido, se espera { deviceId: string, occupied: 0 | 1 }" },
       { status: 400 },
     );
   }
@@ -38,7 +40,7 @@ export async function POST(req: Request) {
   }
 
   await markDeviceOnline(parsed.data.deviceId);
-  const result = await reportBedStatus(db, { patientExternalId, occupied: parsed.data.occupied });
+  const result = await reportBedStatus(db, { patientExternalId, occupied: parsed.data.occupied === 1 });
 
   if (!result.ok) {
     return NextResponse.json(

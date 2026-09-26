@@ -2,12 +2,12 @@
 
 Sistema de alerta de caídas para hospital: sensores → app Next.js (T3:
 TypeScript + tRPC + Prisma + Tailwind) → dashboard en tiempo real para
-enfermeros. Hay dos caminos de hardware que llegan al mismo backend:
+enfermeros. Hay tres caminos de hardware que llegan al mismo backend:
 
 ```
 Arduino Mega + MPU6050 (USB serial)  --gateway/-->  \
-                                                       api Next.js -- Prisma (SQLite) -- SSE --> Dashboard
-Mega+WiFi R3 (ESP8266, WiFi directo) --HTTP POST-->  /
+Mega+WiFi R3 (ESP8266, WiFi directo) --HTTP POST-->   api Next.js -- Prisma (SQLite) -- SSE --> Dashboard
+Raspberry Pi (sensor de peso, WiFi)  --HTTP POST-->  /
 ```
 
 - **arduino/fall_detection/** — sketch original que detecta la caída
@@ -23,9 +23,9 @@ Mega+WiFi R3 (ESP8266, WiFi directo) --HTTP POST-->  /
   toca su código desde acá, solo se le da su `Secrets.h` local (SSID +
   contraseña + IP del backend) para que sepa a quién pegarle.
 - **src/app/api/iot/** — capa de traducción para hardware real: `fall/`
-  recibe el contrato del Mega+WiFi R3, `bed-status/` (provisional, sin
-  hardware real todavía) recibe el estado de ocupación de una Raspberry Pi.
-  Ambas resuelven un `deviceId` físico a un paciente vía el modelo `Device`
+  recibe el contrato del Mega+WiFi R3, `bed/` recibe el contrato del script
+  de la Raspberry Pi (sensor de peso), `status/` es un heartbeat opcional.
+  Todas resuelven un `deviceId` físico a un paciente vía el modelo `Device`
   y delegan en la misma lógica de `src/server/alerts-service.ts` — no hay
   reglas de negocio duplicadas entre esta capa y `/api/alerts`.
 - **src/app/api/alerts/** — el contrato "de la app": lo usa el gateway
@@ -117,8 +117,8 @@ túnel ni dominio público, solo tienen que estar en la misma red local.
 
 Estos endpoints traducen un `deviceId` de hardware (no un `patientExternalId`
 de cama) a un paciente, vía la tabla `Device`. Registrar un dispositivo nuevo
-es una fila en esa tabla (ver `prisma/seed.ts` para el ejemplo de
-`"FALL-001"`).
+es una fila en esa tabla (ver `prisma/seed.ts` para `"FALL-001"` y
+`"BED-001"`, ambos mapeados a la cama de prueba `301A`).
 
 - **`POST /api/iot/fall`** — contrato fijo por el firmware "Anticaídas"
   (Mega+WiFi R3). Sin autenticación ni TLS en esta etapa; `2xx` es lo que
@@ -131,23 +131,27 @@ es una fila en esa tabla (ver `prisma/seed.ts` para el ejemplo de
   Las magnitudes se reciben y se descartan — no hay necesidad hoy de
   guardarlas. `deviceId` desconocido → `404` (visible en logs si un
   dispositivo no está registrado).
-- **`POST /api/iot/bed-status`** — provisional: no existe todavía un
-  script/firmware real para la Raspberry Pi, así que esta ruta y su body
-  pueden cambiar sin que nada más del sistema dependa de ellos.
+- **`POST /api/iot/bed`** — contrato fijo por el script real de la
+  Raspberry Pi (sensor de peso HX711). Sin autenticación. Manda al
+  arrancar, en cada cambio de valor y cada 30s como latido — por eso
+  `occupied` repetido es idempotente (no crea alertas duplicadas ni pisa
+  una ya activa).
   ```bash
-  curl -X POST localhost:3000/api/iot/bed-status -H 'Content-Type: application/json' \
-    -d '{"deviceId":"<id de la Pi>","occupied":false}'
+  curl -X POST localhost:3000/api/iot/bed -H 'Content-Type: application/json' \
+    -d '{"deviceId":"BED-001","occupied":0}'
   ```
-  `occupied: false` crea una alerta de salida de cama (igual que
-  `/api/alerts` con `type:"exit"`). `occupied: true` **auto-resuelve** esa
-  alerta si sigue sin escalar a caída (acreditada a "Sistema (regresó a la
-  cama)") — pero nunca toca una alerta ya escalada a `"fall"`, esa siempre
-  necesita que un enfermero la atienda.
+  `occupied` es `0` o `1` (número, no booleano) — así lo manda el script de
+  la Pi. `occupied: 0` (se levantó) crea una alerta de salida de cama (igual
+  que `/api/alerts` con `type:"exit"`). `occupied: 1` (volvió) **auto-resuelve**
+  esa alerta si sigue sin escalar a caída (acreditada a "Sistema (regresó a
+  la cama)") — pero nunca toca una alerta ya escalada a `"fall"`, esa
+  siempre necesita que un enfermero la atienda. `deviceId` desconocido →
+  `404` (la Pi lo reporta como fallo de envío y reintenta cada 5s).
 - **`POST /api/iot/status`** — heartbeat opcional para avisar "sigo vivo"
   sin tener un evento real que reportar. No hace falta que el firmware lo
-  llame para que esto funcione: `/api/iot/fall` y `/api/iot/bed-status` ya
-  marcan "en línea" al dispositivo que les pega, así que un MEGA que solo
-  manda caídas reales ya cuenta como visto.
+  llame para que esto funcione: `/api/iot/fall` y `/api/iot/bed` ya
+  marcan "en línea" al dispositivo que les pega, así que un MEGA o una Pi
+  que solo mandan sus eventos reales ya cuentan como vistos.
   ```bash
   curl -X POST localhost:3000/api/iot/status -H 'Content-Type: application/json' \
     -d '{"deviceId":"FALL-001"}'
