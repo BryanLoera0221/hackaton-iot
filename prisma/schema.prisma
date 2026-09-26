@@ -29,6 +29,18 @@ model Patient {
   roomId     String?
   room       Room?    @relation(fields: [roomId], references: [id])
   alerts     Alert[]
+  devices    Device[]
+}
+
+// Traduce el ID de un sensor físico (deviceId, ej. "FALL-001") al paciente
+// al que está asignado. El hardware identifica el evento por dispositivo,
+// no por Patient.externalId — ver docs/setup-backend.md.
+model Device {
+  id        String  @id // deviceId tal cual lo manda el hardware
+  // "fall" | "bed" — sin enum de Prisma, mismo motivo que type/risk arriba.
+  kind      String
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
 }
 
 model Alert {

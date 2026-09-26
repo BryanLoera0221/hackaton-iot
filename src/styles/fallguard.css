@@ -372,14 +372,18 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 
 .fg-patient-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .fg-patient-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .fg-pcard {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
   width: 100%;
   text-align: left;
@@ -395,20 +399,20 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   background: #fff;
   border: 1px solid var(--color-heather);
   border-radius: var(--radius);
-  padding: 14px;
+  padding: 20px;
   box-shadow: 0 1px 2px rgba(6, 49, 84, 0.08);
 }
 
 .fg-pcard-exit {
   border: 2px dashed var(--exit-border);
   border-radius: var(--radius);
-  padding: 13px;
+  padding: 19px;
   color: var(--exit-text);
   cursor: pointer;
 }
 
 .fg-pcard-fall {
-  padding: 12px;
+  padding: 18px;
   background: var(--fall-fill);
   color: #fff;
   border: 3px solid var(--fall-deep);
@@ -418,12 +422,12 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 
 /* Fila 1: avatar + habitación + cama */
 
-.fg-pcard-row1 { display: flex; align-items: center; gap: 10px; }
+.fg-pcard-row1 { display: flex; align-items: center; gap: 12px; }
 
 .fg-avatar {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   border: 1px dashed var(--color-avatar-border);
   background: var(--color-avatar-fill);
@@ -432,7 +436,7 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -441,9 +445,9 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 .fg-pcard-exit .fg-avatar { border-color: var(--exit-border); background: var(--exit-hatch-b); color: var(--exit-text); }
 .fg-pcard-fall .fg-avatar { border-style: dashed; border-color: #fff; background: var(--fall-deep); color: #fff; }
 
-.fg-pcard-room { font-family: var(--font-heading); font-weight: 600; font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+.fg-pcard-room { font-family: var(--font-heading); font-weight: 600; font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
 .fg-pcard-normal .fg-pcard-room { color: var(--color-sapphire); }
-.fg-pcard-bed { font-size: 17px; font-weight: 500; }
+.fg-pcard-bed { font-size: 19px; font-weight: 500; }
 
 /* Fila 2: nombre + meta, una línea con ellipsis */
 
@@ -454,8 +458,8 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   text-overflow: ellipsis;
 }
 
-.fg-pcard-name { font-size: 18px; font-weight: 500; }
-.fg-pcard-meta { font-size: 13px; color: var(--color-text-secondary); }
+.fg-pcard-name { font-size: 21px; font-weight: 500; }
+.fg-pcard-meta { font-size: 15px; color: var(--color-text-secondary); }
 
 .fg-pcard-exit .fg-pcard-meta { color: var(--exit-text-2); }
 .fg-pcard-fall .fg-pcard-meta { color: rgba(255, 255, 255, 0.85); }
@@ -467,15 +471,15 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  font-size: 14px;
-  padding-top: 8px;
+  font-size: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--color-row-rule);
 }
 
 .fg-pcard-exit .fg-pcard-status { border-top: 1px dashed var(--exit-border); }
 .fg-pcard-fall .fg-pcard-status { border-top: 1px solid rgba(255, 255, 255, 0.5); }
 
-.fg-pcard-state { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.fg-pcard-state { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .fg-pcard-state-normal { color: var(--color-blue-lagoon); }
 .fg-pcard-exit .fg-pcard-state { font-weight: 700; color: var(--exit-text); }
 .fg-pcard-fall .fg-pcard-state { font-weight: 700; }
@@ -485,7 +489,7 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-variant-numeric: tabular-nums;
   color: var(--color-text-secondary);
   flex-shrink: 0;

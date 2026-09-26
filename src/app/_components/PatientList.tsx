@@ -47,7 +47,7 @@ function PatientState({ alert, now }: { alert: ActiveAlert | null; now: number }
   if (!alert) {
     return (
       <div className="fg-pcard-state fg-pcard-state-normal">
-        <Circle size={12} strokeWidth={STROKE} color="var(--color-scooter)" aria-hidden />
+        <Circle size={14} strokeWidth={STROKE} color="var(--color-scooter)" aria-hidden />
         <span>En cama · normal</span>
       </div>
     );
@@ -56,7 +56,7 @@ function PatientState({ alert, now }: { alert: ActiveAlert | null; now: number }
   if (alert.type === "fall") {
     return (
       <div className="fg-pcard-state">
-        <OctagonAlert size={16} strokeWidth={STROKE} aria-hidden />
+        <OctagonAlert size={18} strokeWidth={STROKE} aria-hidden />
         <span className="fg-pcard-state-elapsed">Caída · {elapsed(alert.exitAt ?? alert.t, now)}</span>
       </div>
     );
@@ -64,7 +64,7 @@ function PatientState({ alert, now }: { alert: ActiveAlert | null; now: number }
 
   return (
     <div className="fg-pcard-state">
-      <TriangleAlert size={16} strokeWidth={STROKE} aria-hidden />
+      <TriangleAlert size={18} strokeWidth={STROKE} aria-hidden />
       <span className="fg-pcard-state-elapsed">Fuera de cama · {elapsed(alert.t, now)}</span>
     </div>
   );
