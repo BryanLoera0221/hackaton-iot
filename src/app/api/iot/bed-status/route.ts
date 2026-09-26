@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { reportBedStatus, resolvePatientExternalIdByDevice } from "~/server/alerts-service";
+import { markDeviceOnline } from "~/server/device-status";
 
 // Prisma necesita el runtime de Node, no el edge.
 export const runtime = "nodejs";
@@ -36,6 +37,7 @@ export async function POST(req: Request) {
     );
   }
 
+  await markDeviceOnline(parsed.data.deviceId);
   const result = await reportBedStatus(db, { patientExternalId, occupied: parsed.data.occupied });
 
   if (!result.ok) {

@@ -143,6 +143,23 @@ es una fila en esa tabla (ver `prisma/seed.ts` para el ejemplo de
   alerta si sigue sin escalar a caída (acreditada a "Sistema (regresó a la
   cama)") — pero nunca toca una alerta ya escalada a `"fall"`, esa siempre
   necesita que un enfermero la atienda.
+- **`POST /api/iot/status`** — heartbeat opcional para avisar "sigo vivo"
+  sin tener un evento real que reportar. No hace falta que el firmware lo
+  llame para que esto funcione: `/api/iot/fall` y `/api/iot/bed-status` ya
+  marcan "en línea" al dispositivo que les pega, así que un MEGA que solo
+  manda caídas reales ya cuenta como visto.
+  ```bash
+  curl -X POST localhost:3000/api/iot/status -H 'Content-Type: application/json' \
+    -d '{"deviceId":"FALL-001"}'
+  ```
+  `GET /api/iot/status` devuelve el estado de todos los dispositivos
+  conocidos (`{id, kind, online, lastSeenAt}`), útil para revisar sin
+  esperar al log. El seguimiento vive en `src/server/device-status.ts`
+  (en memoria, no persiste en la base): si un dispositivo lleva más de 30s
+  sin reportar nada, la consola del server (`npm run dev`) imprime un aviso
+  de que parece offline; en cuanto vuelve a reportar, imprime que está en
+  línea de nuevo. Son solo mensajes de consola — el dashboard no muestra
+  este estado todavía.
 
 ## Notas de la demo
 
