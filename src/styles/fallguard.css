@@ -354,18 +354,16 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 .fg-topbar-title { font-size: 34px; color: var(--color-sapphire); }
 .fg-topbar-sub { font-size: 15px; color: var(--color-text-secondary); margin-top: 2px; }
 
-.fg-topbar-right { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-.fg-topbar-shift { display: flex; align-items: center; gap: 10px; }
-.fg-topbar-shift-label { font-size: 14px; color: var(--color-text-secondary); }
-
 .fg-clock {
   font-family: var(--font-heading);
   font-weight: 600;
-  font-size: 34px;
+  font-size: 56px;
   line-height: 1;
   color: var(--color-sapphire);
   font-variant-numeric: tabular-nums;
 }
+
+.fg-field-label { font-size: 14px; color: var(--color-text-secondary); }
 
 .fg-view { min-width: 0; }
 .fg-section-sub { font-size: 16px; color: var(--color-text-secondary); }

@@ -108,7 +108,7 @@ export function EventDialog({
         </div>
 
         <div className="fg-dialog-footer">
-          <span className="fg-topbar-shift-label">Atiende</span>
+          <span className="fg-field-label">Atiende</span>
           <Seg
             name="dialog-nurse"
             value={nurse}

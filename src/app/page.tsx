@@ -18,7 +18,10 @@ export default function DashboardPage() {
   const state = useFallGuard();
 
   const [tab, setTab] = useState<Tab>("panel");
-  const [shiftNurse, setShiftNurse] = useState<string>(FALLGUARD_CONFIG.nurses[0]!);
+  // Sin selector de turno en la UI: se acredita siempre al primer enfermero
+  // configurado. El diálogo de detalle igual permite elegir quién atiende
+  // cada alerta puntual.
+  const shiftNurse = FALLGUARD_CONFIG.nurses[0]!;
   const [historyFilter, setHistoryFilter] = useState<HistoryFilter>("todas");
 
   /** Alerta abierta en el diálogo de detalle, y quién la atendería desde ahí. */
@@ -71,8 +74,6 @@ export default function DashboardPage() {
       <div className="fg-main">
         <TopBar
           tab={tab}
-          nurse={shiftNurse}
-          onNurse={setShiftNurse}
           now={state.now}
           patientCount={state.patients.length}
           occupiedBeds={state.occupiedBeds}

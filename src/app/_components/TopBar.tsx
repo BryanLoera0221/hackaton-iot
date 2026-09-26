@@ -3,7 +3,6 @@
 import type { Tab } from "~/domain/types";
 import { FALLGUARD_CONFIG } from "~/mock/data";
 import { hms } from "~/app/_lib/format";
-import { Seg, toOptions } from "./primitives";
 
 function titleFor(tab: Tab, patientCount: number, occupiedBeds: number, historyCount: number) {
   if (tab === "panel") {
@@ -26,16 +25,12 @@ function titleFor(tab: Tab, patientCount: number, occupiedBeds: number, historyC
 
 export function TopBar({
   tab,
-  nurse,
-  onNurse,
   now,
   patientCount,
   occupiedBeds,
   historyCount,
 }: {
   tab: Tab;
-  nurse: string;
-  onNurse: (nurse: string) => void;
   now: number;
   patientCount: number;
   occupiedBeds: number;
@@ -50,20 +45,7 @@ export function TopBar({
         <div className="fg-topbar-sub">{subtitle}</div>
       </div>
 
-      <div className="fg-topbar-right">
-        <div className="fg-topbar-shift">
-          <span className="fg-topbar-shift-label">Turno</span>
-          <Seg
-            name="nurse"
-            value={nurse}
-            options={toOptions(FALLGUARD_CONFIG.nurses)}
-            onChange={onNurse}
-            ariaLabel="Enfermero de turno"
-          />
-        </div>
-
-        <span className="fg-clock">{hms(now)}</span>
-      </div>
+      <span className="fg-clock">{hms(now)}</span>
     </div>
   );
 }
