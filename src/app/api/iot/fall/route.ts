@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "~/server/db";
 import { reportAlert, resolvePatientExternalIdByDevice } from "~/server/alerts-service";
 import { markDeviceOnline } from "~/server/device-status";
+import { queueFallSms } from "~/server/fall-sms";
 
 // Prisma necesita el runtime de Node, no el edge.
 export const runtime = "nodejs";
@@ -39,7 +40,8 @@ export async function POST(req: Request) {
   }
 
   await markDeviceOnline(parsed.data.deviceId);
-  await reportAlert(db, { patientExternalId, type: "fall" });
+  const result = await reportAlert(db, { patientExternalId, type: "fall" });
+  if (result.ok && (result.created || result.escalated)) queueFallSms();
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

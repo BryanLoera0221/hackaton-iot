@@ -165,6 +165,39 @@ es una fila en esa tabla (ver `prisma/seed.ts` para `"FALL-001"` y
   línea de nuevo. Son solo mensajes de consola — el dashboard no muestra
   este estado todavía.
 
+## Aviso SMS opcional con RapidAPI
+
+Para una caída nueva o una salida de cama que escala a caída, las rutas REST
+`/api/iot/fall` y `/api/alerts` pueden solicitar un SMS mediante
+[D7SMS en RapidAPI](https://rapidapi.com/direct7-networks-direct7-networks-default/api/d7sms).
+La mutación de simulación del dashboard no envía SMS. Un evento repetido
+para la misma alerta activa tampoco genera otro envío.
+
+La función está **apagada por defecto**. Copia `.env.example` a `.env` y
+configura `FALL_SMS_ENABLED=true`, `RAPIDAPI_KEY`, `D7_SMS_TOKEN` (token de la
+cuenta D7), `FALL_SMS_RECIPIENT` (número del personal autorizado en formato
+E.164, por ejemplo `+52...`) y, si hace falta, `FALL_SMS_ORIGINATOR` (máximo
+11 caracteres y autorizado por D7). Nunca coloques estos valores en el
+firmware ni en variables `NEXT_PUBLIC_*`.
+
+RapidAPI muestra un plan Basic de $0/mes, pero D7 exige cuenta y saldo propio;
+pueden aplicar cargos por SMS, partes de mensajes y excedentes de plataforma.
+Consulta el precio vigente antes de activarlo. No se hizo una suscripción ni
+se enviaron mensajes reales durante esta implementación.
+
+El texto enviado es genérico: “FallGuard: posible caida. Revise el panel de
+enfermeria.” No incluye nombre, identificador, habitación ni lecturas del
+sensor. El teléfono configurado sí se transmite al proveedor. La respuesta
+`accepted` significa que D7 aceptó la solicitud, **no** que el SMS llegó al
+destinatario. Los fallos del proveedor se registran sin credenciales ni número
+y no bloquean la persistencia, SSE o respuesta al dispositivo. El envío vive
+en memoria del proceso; un cierre del servidor durante la petición puede
+perder ese aviso. La alerta del panel sigue siendo el canal principal.
+
+Las rutas IoT de esta etapa no tienen autenticación ni TLS: activa SMS solo
+en una red controlada. No expongas esos endpoints a Internet sin agregar
+autenticación, control de abuso y transporte seguro.
+
 ## Notas de la demo
 
 - `POST /api/alerts` acepta `{ patientExternalId, type }` con
