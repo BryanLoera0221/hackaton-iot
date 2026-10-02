@@ -6,7 +6,7 @@ export type AlertKind = "fall" | "exit";
 export type PatientWithRoom = Patient & { room: Room | null };
 
 export type ReportAlertResult =
-  | { ok: true; patient: PatientWithRoom; alert: Alert; escalated: boolean }
+  | { ok: true; patient: PatientWithRoom; alert: Alert; created: boolean; escalated: boolean }
   | { ok: false; error: "not_found" };
 
 function toPayload(patient: PatientWithRoom, alert: Alert): AlertPayload {
@@ -47,23 +47,23 @@ export async function reportAlert(
 
   if (input.type === "exit") {
     // Ya hay una alerta activa (de cualquier tipo): no-op, no se duplica.
-    if (active) return { ok: true, patient, alert: active, escalated: false };
+    if (active) return { ok: true, patient, alert: active, created: false, escalated: false };
 
     const alert = await db.alert.create({ data: { patientId: patient.id, type: "exit" } });
     alertEvents.emit(ALERT_EVENT, toPayload(patient, alert));
-    return { ok: true, patient, alert, escalated: false };
+    return { ok: true, patient, alert, created: true, escalated: false };
   }
 
   // input.type === "fall"
   if (!active) {
     const alert = await db.alert.create({ data: { patientId: patient.id, type: "fall" } });
     alertEvents.emit(ALERT_EVENT, toPayload(patient, alert));
-    return { ok: true, patient, alert, escalated: false };
+    return { ok: true, patient, alert, created: true, escalated: false };
   }
 
   if (active.type === "fall") {
     // Ya es una caída: no-op.
-    return { ok: true, patient, alert: active, escalated: false };
+    return { ok: true, patient, alert: active, created: false, escalated: false };
   }
 
   // Escalada: la misma fila pasa de "exit" a "fall", conservando exitAt.
@@ -72,7 +72,7 @@ export async function reportAlert(
     data: { type: "fall", exitAt: active.createdAt, createdAt: new Date() },
   });
   alertEvents.emit(ALERT_EVENT, toPayload(patient, alert));
-  return { ok: true, patient, alert, escalated: true };
+  return { ok: true, patient, alert, created: false, escalated: true };
 }
 
 /**

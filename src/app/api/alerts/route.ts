@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { reportAlert } from "~/server/alerts-service";
+import { queueFallSms } from "~/server/fall-sms";
 
 // Prisma necesita el runtime de Node, no el edge.
 export const runtime = "nodejs";
@@ -33,6 +34,8 @@ export async function POST(req: Request) {
       { status: 404 },
     );
   }
+
+  if (parsed.data.type === "fall" && (result.created || result.escalated)) queueFallSms();
 
   return NextResponse.json(
     { ok: true, alert: result.alert, escalated: result.escalated },

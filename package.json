@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test": "node --import tsx --test tests/*.test.ts",
     "start": "next start",
     "postinstall": "prisma generate"
   },
