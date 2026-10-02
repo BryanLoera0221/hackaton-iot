@@ -17,6 +17,12 @@ function titleFor(tab: Tab, patientCount: number, occupiedBeds: number, historyC
       subtitle: `${historyCount} alertas atendidas en este turno`,
     };
   }
+  if (tab === "camara") {
+    return {
+      title: "Detección por cámara",
+      subtitle: "Demo · visión artificial para detectar caídas",
+    };
+  }
   return {
     title: "Sistema de severidad",
     subtitle: "Cómo se distingue cada nivel de alerta",

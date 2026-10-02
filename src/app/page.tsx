@@ -10,6 +10,7 @@ import { AlertBand } from "~/app/_components/AlertBand";
 import { PatientList } from "~/app/_components/PatientList";
 import { HistoryView } from "~/app/_components/HistoryView";
 import { SystemView } from "~/app/_components/SystemView";
+import { CameraView } from "~/app/_components/CameraView";
 import { EventDialog } from "~/app/_components/EventDialog";
 import { DemoFooter } from "~/app/_components/DemoFooter";
 import { LiveDemoFooter } from "~/app/_components/LiveDemoFooter";
@@ -98,6 +99,8 @@ export default function DashboardPage() {
             avgResponse={state.avgResponse}
           />
         )}
+
+        {tab === "camara" && <CameraView />}
 
         {tab === "sistema" && <SystemView />}
 

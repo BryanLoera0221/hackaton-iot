@@ -58,6 +58,6 @@ export type HistoryEntry = {
 /** Estado derivado de una fila de paciente. */
 export type PatientStatus = "normal" | "exit" | "fall";
 
-export type Tab = "panel" | "historial" | "sistema";
+export type Tab = "panel" | "historial" | "camara" | "sistema";
 
 export type HistoryFilter = "todas" | "fall" | "exit";

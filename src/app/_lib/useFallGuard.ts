@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ActiveAlert, AlertType, HistoryEntry, Patient, PatientStatus, Risk } from "~/domain/types";
 import { FALLGUARD_CONFIG, PATIENTS, buildInitialState } from "~/mock/data";
 import { api } from "~/trpc/react";
+import { playFallAlarm, unlockAlarmAudio } from "~/app/_lib/alarm-sound";
 
 let seq = 0;
 const nextId = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${seq++}`;
@@ -129,6 +130,36 @@ export function useFallGuard() {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  // El navegador bloquea el audio hasta el primer gesto del usuario.
+  useEffect(() => {
+    const unlock = () => unlockAlarmAudio();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
+  /**
+   * Sirena de emergencia cuando aparece una caída nueva (o una salida de
+   * cama escalada a caída) — sin importar si vino del botón de demo o de un
+   * evento real por SSE, ambos terminan mutando este mismo `alerts`. Se
+   * detecta por transición (un id de tipo "fall" que no estaba antes) para
+   * no sonar de nuevo con el estado ya activo al cargar la página ni con
+   * reenvíos idempotentes del mismo evento.
+   */
+  const prevFallIdsRef = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    if (alerts === null) return;
+    const fallIds = new Set(alerts.filter((a) => a.type === "fall").map((a) => a.id));
+    const prev = prevFallIdsRef.current;
+    if (prev !== null && [...fallIds].some((id) => !prev.has(id))) {
+      playFallAlarm();
+    }
+    prevFallIdsRef.current = fallIds;
+  }, [alerts]);
 
   /** BEDEXIT,<id> — no hace nada si el paciente ya tiene una alerta activa. */
   const registerExit = useCallback((pid: string) => {
