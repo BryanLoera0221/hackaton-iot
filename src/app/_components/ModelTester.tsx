@@ -29,9 +29,25 @@ type InferenceResult = {
 
 type Source = "camara" | "imagen";
 
-/** Las clases que el modelo usa para "caída" (el resto se pinta como neutro). */
+/**
+ * El modelo fall-c3gmv/1 devuelve clases numéricas. En Roboflow tiene tres
+ * clases (fall, sit, walk); probando fotos, 1 sale con personas de pie
+ * (walk) y 2 con personas sentadas (sit), así que 0 es fall.
+ */
+const CLASS_LABELS: Record<string, string> = {
+  "0": "Caída",
+  "1": "De pie",
+  "2": "Sentado",
+};
+const FALL_CLASSES = new Set(["0"]);
+
+function labelOf(name: string) {
+  return CLASS_LABELS[name] ?? name;
+}
+
+/** Si la clase cuenta como caída (el resto se pinta como neutro). */
 function isFallClass(name: string) {
-  return /fall|ca[ií]d/i.test(name);
+  return FALL_CLASSES.has(name) || /fall|ca[ií]d/i.test(name);
 }
 
 async function infer(image: Blob): Promise<InferenceResult> {
@@ -60,7 +76,7 @@ function Boxes({ result }: { result: InferenceResult }) {
           }}
         >
           <span className="fg-mt-box-label">
-            {p.class} · {Math.round(p.confidence * 100)} %
+            {labelOf(p.class)} · {Math.round(p.confidence * 100)} %
           </span>
         </div>
       ))}
@@ -307,7 +323,7 @@ export function ModelTester() {
             {predictions.map((p, i) => (
               <div key={p.detection_id ?? i} className="fg-cam-det">
                 <span className="fg-cam-det-time">#{i + 1}</span>
-                <span>{p.class}</span>
+                <span>{labelOf(p.class)}</span>
                 <span className="fg-cam-det-conf">{Math.round(p.confidence * 100)} %</span>
               </div>
             ))}
@@ -315,7 +331,7 @@ export function ModelTester() {
         )}
 
         <p className="fg-section-sub" style={{ fontSize: 14, marginTop: 12 }}>
-          Modelo <code>fall-xof9a/2</code> en Roboflow. Con la cámara se envía un cuadro por
+          Modelo <code>fall-c3gmv/1</code> en Roboflow. Con la cámara se envía un cuadro por
           segundo al servidor y de ahí a la API; no se guarda nada.
         </p>
       </div>

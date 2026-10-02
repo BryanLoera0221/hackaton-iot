@@ -3,14 +3,14 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 /**
- * Proxy al modelo de Roboflow "fall-xof9a/2" (Serverless Cloud API).
+ * Proxy al modelo de Roboflow "fall-c3gmv/1" (Serverless Cloud API).
  * La API key vive solo en el servidor (ROBOFLOW_API_KEY en .env) y viaja en
  * el header Authorization, nunca en la query ni en el cliente.
  *
  * Recibe multipart/form-data con el campo "image" (archivo) y responde con
  * el JSON de predicciones del modelo tal cual.
  */
-const MODEL_ID = "fall-xof9a/2";
+const MODEL_ID = "fall-c3gmv/1";
 const ROBOFLOW_URL = `https://serverless.roboflow.com/${MODEL_ID}`;
 const MAX_BYTES = 8 * 1024 * 1024;
 
