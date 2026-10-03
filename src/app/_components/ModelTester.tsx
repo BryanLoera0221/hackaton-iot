@@ -10,6 +10,24 @@ const FRAME_INTERVAL_MS = 1000;
 /** Ancho al que se reduce cada cuadro antes de enviarlo. */
 const FRAME_WIDTH = 640;
 
+/** Espera mínima entre dos verificaciones con Claude (cada una tiene costo). */
+const VERIFY_COOLDOWN_MS = 10_000;
+/** Cuántas verificaciones se conservan en el registro. */
+const VERIFY_LOG_MAX = 20;
+
+/** Respuesta de /api/vision/verify. */
+type Verdict = { fell: boolean; confidence: "baja" | "media" | "alta"; reason: string };
+
+type VerifyEntry = {
+  id: number;
+  at: Date;
+  detector: string;
+  thumb: string;
+  status: "pending" | "done" | "error";
+  verdict?: Verdict;
+  error?: string;
+};
+
 /** Una detección del modelo; x/y son el centro de la caja, en píxeles de la imagen. */
 type Prediction = {
   x: number;
@@ -35,14 +53,25 @@ type Source = "camara" | "imagen";
  * (walk) y 2 con personas sentadas (sit), así que 0 es fall.
  */
 const CLASS_LABELS: Record<string, string> = {
-  "0": "Caída",
-  "1": "De pie",
-  "2": "Sentado",
+  "0": "Fall",
+  "1": "Standing",
+  "2": "Sitting",
 };
 const FALL_CLASSES = new Set(["0"]);
 
 function labelOf(name: string) {
   return CLASS_LABELS[name] ?? name;
+}
+
+/** Color de la caja por clase: rojo caída, verde de pie, azul sentado. */
+const BOX_CLASS: Record<string, string> = {
+  "0": "fg-mt-box-fall",
+  "1": "fg-mt-box-stand",
+  "2": "fg-mt-box-sit",
+};
+
+function boxClassOf(name: string) {
+  return BOX_CLASS[name] ?? (isFallClass(name) ? "fg-mt-box-fall" : "");
 }
 
 /** Si la clase cuenta como caída (el resto se pinta como neutro). */
@@ -59,6 +88,20 @@ async function infer(image: Blob): Promise<InferenceResult> {
   return json;
 }
 
+async function verifyWithClaude(image: Blob, detector: string): Promise<Verdict> {
+  const body = new FormData();
+  body.append("image", image);
+  body.append("detector", detector);
+  const res = await fetch("/api/vision/verify", { method: "POST", body });
+  const json = (await res.json()) as Verdict & { error?: string };
+  if (!res.ok) throw new Error(json.error ?? `error ${res.status}`);
+  return json;
+}
+
+function hms(d: Date) {
+  return d.toLocaleTimeString("es-MX", { hour12: false });
+}
+
 /** Cajas de detección en porcentajes, para que escalen con la imagen o el video. */
 function Boxes({ result }: { result: InferenceResult }) {
   const { width: W, height: H } = result.image;
@@ -67,7 +110,7 @@ function Boxes({ result }: { result: InferenceResult }) {
       {result.predictions.map((p, i) => (
         <div
           key={p.detection_id ?? i}
-          className={`fg-mt-box ${isFallClass(p.class) ? "fg-mt-box-fall" : ""}`}
+          className={`fg-mt-box ${boxClassOf(p.class)}`}
           style={{
             left: `${((p.x - p.width / 2) / W) * 100}%`,
             top: `${((p.y - p.height / 2) / H) * 100}%`,
@@ -98,6 +141,58 @@ export function ModelTester() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [streaming, setStreaming] = useState(false);
+
+  // Registro de verificaciones con Claude (más reciente primero).
+  const [verifyLog, setVerifyLog] = useState<VerifyEntry[]>([]);
+  const verifyingRef = useRef(false);
+  const lastVerifyRef = useRef(0);
+  const nextIdRef = useRef(1);
+  const thumbsRef = useRef<string[]>([]);
+
+  // Liberar las miniaturas al desmontar.
+  useEffect(() => () => thumbsRef.current.forEach((u) => URL.revokeObjectURL(u)), []);
+
+  /**
+   * Si el resultado trae una caída, manda el cuadro a Claude en segundo plano.
+   * Una verificación a la vez y con pausa mínima entre ellas (`force` la salta,
+   * para imágenes subidas a mano).
+   */
+  const maybeVerify = (image: Blob, json: InferenceResult, force = false) => {
+    const fall = json.predictions
+      .filter((p) => isFallClass(p.class))
+      .sort((a, b) => b.confidence - a.confidence)[0];
+    if (!fall) return;
+    if (!force && (verifyingRef.current || Date.now() - lastVerifyRef.current < VERIFY_COOLDOWN_MS)) {
+      return;
+    }
+
+    verifyingRef.current = true;
+    lastVerifyRef.current = Date.now();
+
+    const id = nextIdRef.current++;
+    const thumb = URL.createObjectURL(image);
+    thumbsRef.current.push(thumb);
+    const detector = `${labelOf(fall.class)} ${Math.round(fall.confidence * 100)} %`;
+
+    setVerifyLog((log) => {
+      const next = [{ id, at: new Date(), detector, thumb, status: "pending" as const }, ...log];
+      // Liberar las miniaturas que salen del registro.
+      next.slice(VERIFY_LOG_MAX).forEach((e) => URL.revokeObjectURL(e.thumb));
+      return next.slice(0, VERIFY_LOG_MAX);
+    });
+
+    const update = (patch: Partial<VerifyEntry>) =>
+      setVerifyLog((log) => log.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+
+    verifyWithClaude(image, detector)
+      .then((verdict) => update({ status: "done", verdict }))
+      .catch((e: unknown) =>
+        update({ status: "error", error: e instanceof Error ? e.message : "error desconocido" }),
+      )
+      .finally(() => {
+        verifyingRef.current = false;
+      });
+  };
 
   // Liberar la URL del objeto cuando cambia la imagen o se desmonta.
   useEffect(() => {
@@ -157,7 +252,12 @@ export function ModelTester() {
       const scale = Math.min(1, FRAME_WIDTH / video.videoWidth);
       canvas.width = Math.round(video.videoWidth * scale);
       canvas.height = Math.round(video.videoHeight * scale);
-      canvas.getContext("2d")?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      // Cuadro espejado (como se ve en pantalla), para que las cajas coincidan con el video.
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
 
       const frame = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.8));
 
@@ -168,6 +268,7 @@ export function ModelTester() {
           if (!cancelled) {
             setResult(json);
             setError(null);
+            maybeVerify(frame, json);
           }
         } catch (e) {
           if (!cancelled) setError(e instanceof Error ? e.message : "error desconocido");
@@ -200,7 +301,9 @@ export function ModelTester() {
     setError(null);
     setLoading(true);
     try {
-      setResult(await infer(file));
+      const json = await infer(file);
+      setResult(json);
+      maybeVerify(file, json, true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "error desconocido");
     } finally {
@@ -216,7 +319,7 @@ export function ModelTester() {
       <div className="fg-mt-frame">
         {source === "camara" ? (
           <div className="fg-mt-imgwrap" style={{ display: streaming ? undefined : "none" }}>
-            <video ref={videoRef} className="fg-mt-img" muted playsInline />
+            <video ref={videoRef} className="fg-mt-img fg-mt-mirror" muted playsInline />
             {result && <Boxes result={result} />}
             <span className="fg-cam-tag fg-cam-tag-rec">
               <span className="fg-cam-rec-dot" aria-hidden /> EN VIVO
@@ -328,6 +431,47 @@ export function ModelTester() {
               </div>
             ))}
           </>
+        )}
+
+        <div className="fg-cam-side-title fg-mt-log-title">Verificación con Claude</div>
+        {verifyLog.length === 0 ? (
+          <p className="fg-section-sub" style={{ fontSize: 14 }}>
+            Cuando el modelo detecte una caída, Claude revisará el cuadro y el resultado aparecerá
+            aquí.
+          </p>
+        ) : (
+          <div className="fg-mt-log">
+            {verifyLog.map((e) => (
+              <div key={e.id} className="fg-mt-log-row">
+                {/* eslint-disable-next-line @next/next/no-img-element -- cuadro local de la cámara */}
+                <img src={e.thumb} alt="" className="fg-mt-log-thumb" />
+                <div className="fg-mt-log-body">
+                  <div className="fg-mt-log-head">
+                    <span className="fg-cam-det-time">{hms(e.at)}</span>
+                    {e.status === "pending" && (
+                      <span className="fg-cam-status fg-cam-status-offline">Verificando…</span>
+                    )}
+                    {e.status === "error" && (
+                      <span className="fg-cam-status fg-cam-status-offline">Error</span>
+                    )}
+                    {e.verdict && (
+                      <span
+                        className={`fg-cam-status ${e.verdict.fell ? "fg-cam-status-fall" : "fg-cam-status-normal"}`}
+                      >
+                        {e.verdict.fell ? "Caída confirmada" : "Falsa alarma"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="fg-mt-log-text">
+                    Detector: {e.detector}
+                    {e.verdict && <> · confianza {e.verdict.confidence}</>}
+                  </div>
+                  {e.verdict && <div className="fg-mt-log-text">{e.verdict.reason}</div>}
+                  {e.error && <div className="fg-mt-log-text fg-mt-error">{e.error}</div>}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         <p className="fg-section-sub" style={{ fontSize: 14, marginTop: 12 }}>

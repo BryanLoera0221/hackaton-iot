@@ -726,6 +726,7 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 
 .fg-mt-imgwrap { position: relative; width: 100%; line-height: 0; }
 .fg-mt-img { display: block; width: 100%; height: auto; }
+.fg-mt-mirror { transform: scaleX(-1); }
 
 .fg-mt-box {
   position: absolute;
@@ -750,6 +751,12 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 }
 
 .fg-mt-box-fall .fg-mt-box-label { background: var(--fall-fill); }
+
+.fg-mt-box-stand { border-color: #1e8e3e; }
+.fg-mt-box-stand .fg-mt-box-label { background: #1e8e3e; }
+
+.fg-mt-box-sit { border-color: #1a66d2; }
+.fg-mt-box-sit .fg-mt-box-label { background: #1a66d2; }
 
 .fg-mt-side { display: flex; flex-direction: column; gap: 4px; }
 
@@ -787,6 +794,50 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 }
 
 .fg-mt-verdict-fall { color: var(--fall-fill); }
+
+/* Registro de verificaciones con Claude */
+
+.fg-cam-side-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 24px;
+  color: var(--color-sapphire);
+  margin-bottom: 10px;
+}
+
+.fg-mt-log-title { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--color-heather); }
+
+.fg-mt-log { display: flex; flex-direction: column; max-height: 420px; overflow-y: auto; }
+
+.fg-mt-log-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-row-rule);
+}
+
+.fg-mt-log-row:first-child { border-top: 0; padding-top: 0; }
+
+.fg-mt-log-thumb {
+  width: 72px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+  background: #1b2a36;
+}
+
+.fg-mt-log-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.fg-mt-log-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.fg-mt-log-text { font-size: 14px; color: var(--color-text-body); }
+
+.fg-cam-status { font-size: 13px; font-weight: 600; border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
+.fg-cam-status-normal { color: var(--color-blue-lagoon); background: #e3f2f0; }
+.fg-cam-status-fall { color: #fff; background: var(--fall-fill); }
+.fg-cam-status-offline { color: var(--color-text-secondary); background: var(--color-avatar-fill); }
 
 @keyframes fgSpin { to { transform: rotate(360deg); } }
 .fg-mt-spin { animation: fgSpin 1s linear infinite; }
