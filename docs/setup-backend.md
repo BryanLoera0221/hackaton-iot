@@ -165,30 +165,35 @@ es una fila en esa tabla (ver `prisma/seed.ts` para `"FALL-001"` y
   línea de nuevo. Son solo mensajes de consola — el dashboard no muestra
   este estado todavía.
 
-## Aviso SMS opcional con RapidAPI
+## Aviso SMS opcional con Twilio
 
 Para una caída nueva o una salida de cama que escala a caída, las rutas REST
-`/api/iot/fall` y `/api/alerts` pueden solicitar un SMS mediante
-[D7SMS en RapidAPI](https://rapidapi.com/direct7-networks-direct7-networks-default/api/d7sms).
+`/api/iot/fall` y `/api/alerts` pueden solicitar un SMS mediante la
+[API oficial de Twilio](https://www.twilio.com/docs/messaging/api/message-resource).
 La mutación de simulación del dashboard no envía SMS. Un evento repetido
 para la misma alerta activa tampoco genera otro envío.
 
-La función está **apagada por defecto**. Copia `.env.example` a `.env` y
-configura `FALL_SMS_ENABLED=true`, `RAPIDAPI_KEY`, `D7_SMS_TOKEN` (token de la
-cuenta D7), `FALL_SMS_RECIPIENT` (número del personal autorizado en formato
-E.164, por ejemplo `+52...`) y, si hace falta, `FALL_SMS_ORIGINATOR` (máximo
-11 caracteres y autorizado por D7). Nunca coloques estos valores en el
-firmware ni en variables `NEXT_PUBLIC_*`.
+La función está **apagada por defecto**. Configura en `.env`
+`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `FALL_SMS_RECIPIENT` (número
+autorizado en formato E.164, por ejemplo `+52...`) y una opción de remitente:
+`TWILIO_FROM` (número de Twilio en formato E.164) o
+`TWILIO_MESSAGING_SERVICE_SID` (servicio con un remitente configurado).
+Después establece `FALL_SMS_ENABLED=true` y reinicia el servidor. Nunca
+coloques estas credenciales en el firmware ni en variables `NEXT_PUBLIC_*`.
 
-RapidAPI muestra un plan Basic de $0/mes, pero D7 exige cuenta y saldo propio;
-pueden aplicar cargos por SMS, partes de mensajes y excedentes de plataforma.
-Consulta el precio vigente antes de activarlo. No se hizo una suscripción ni
-se enviaron mensajes reales durante esta implementación.
+Esta integración llama directamente a `api.twilio.com`. Los listados de
+Twilio encontrados en RapidAPI son de terceros y uno solicita el Auth Token
+de Twilio en el cuerpo; no se deben entregar credenciales a ese intermediario.
+La [cuenta de prueba de Twilio](https://www.twilio.com/docs/usage/trials)
+tiene restricciones de destinatarios y contenido; el texto libre de esta
+integración requiere una cuenta habilitada para ello. Revisa en Twilio que
+tu remitente pueda enviar SMS a México y los costos antes de activar el
+aviso. No se enviaron mensajes reales durante esta implementación.
 
 El texto enviado es genérico: “FallGuard: posible caida. Revise el panel de
 enfermeria.” No incluye nombre, identificador, habitación ni lecturas del
 sensor. El teléfono configurado sí se transmite al proveedor. La respuesta
-`accepted` significa que D7 aceptó la solicitud, **no** que el SMS llegó al
+`queued` o `accepted` significa que Twilio aceptó la solicitud, **no** que el SMS llegó al
 destinatario. Los fallos del proveedor se registran sin credenciales ni número
 y no bloquean la persistencia, SSE o respuesta al dispositivo. El envío vive
 en memoria del proceso; un cierre del servidor durante la petición puede

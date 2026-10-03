@@ -1,46 +1,57 @@
-/** D7SMS en RapidAPI. Nunca incluye datos del paciente ni de la habitación. */
+/** SMS de caída por la API oficial de Twilio, sin datos del paciente. */
 export type FallSmsConfig = {
-  rapidApiKey: string;
-  d7Token: string;
+  accountSid: string;
+  authToken: string;
   recipient: string;
-  originator: string;
+  from: string;
+  messagingServiceSid: string;
 };
 
-const ENDPOINT = "https://d7sms.p.rapidapi.com/messages/v1/send";
 const GENERIC_MESSAGE = "FallGuard: posible caida. Revise el panel de enfermeria.";
+const E164 = /^\+[1-9]\d{7,14}$/;
+const ACCOUNT_SID = /^AC[0-9a-fA-F]{32}$/;
+const SERVICE_SID = /^MG[0-9a-fA-F]{32}$/;
+const MESSAGE_SID = /^SM[0-9a-fA-F]{32}$/;
 
 export async function sendFallSms(
   config: FallSmsConfig,
   fetcher: typeof fetch = fetch,
 ): Promise<"accepted" | "disabled"> {
-  const { rapidApiKey, d7Token, recipient, originator } = config;
-  if (!rapidApiKey || !d7Token || !recipient || !originator) return "disabled";
-  if (!/^\+[1-9]\d{7,14}$/.test(recipient)) throw new Error("destinatario SMS inválido");
-  if (originator.length > 11) throw new Error("remitente SMS demasiado largo");
+  const { accountSid, authToken, recipient, from, messagingServiceSid } = config;
+  if (!accountSid || !authToken || !recipient || (!from && !messagingServiceSid)) return "disabled";
+  if (!ACCOUNT_SID.test(accountSid)) throw new Error("Account SID de Twilio inválido");
+  if (!E164.test(recipient)) throw new Error("destinatario SMS inválido");
+  if (messagingServiceSid) {
+    if (!SERVICE_SID.test(messagingServiceSid)) throw new Error("Messaging Service SID inválido");
+  } else if (!E164.test(from)) {
+    throw new Error("remitente SMS inválido");
+  }
 
-  const response = await fetcher(ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-RapidAPI-Key": rapidApiKey,
-      "X-RapidAPI-Host": "d7sms.p.rapidapi.com",
-      Token: d7Token,
+  const body = new URLSearchParams({ To: recipient, Body: GENERIC_MESSAGE });
+  if (messagingServiceSid) body.set("MessagingServiceSid", messagingServiceSid);
+  else body.set("From", from);
+
+  const response = await fetcher(
+    `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: body.toString(),
+      signal: AbortSignal.timeout(3000),
     },
-    body: JSON.stringify({
-      messages: [{
-        channel: "sms",
-        content: GENERIC_MESSAGE,
-        data_coding: "text",
-        originator,
-        recipients: [recipient],
-      }],
-    }),
-    signal: AbortSignal.timeout(3000),
-  });
+  );
 
   if (!response.ok) throw new Error(`proveedor SMS respondió HTTP ${response.status}`);
-  const body: unknown = await response.json();
-  if (!body || typeof body !== "object" || !("status" in body) || body.status !== "accepted") {
+  // No usar ni registrar el cuerpo de error del proveedor: puede incluir datos sensibles.
+  const result: unknown = await response.json();
+  if (
+    !result || typeof result !== "object" ||
+    !("sid" in result) || typeof result.sid !== "string" || !MESSAGE_SID.test(result.sid) ||
+    !("status" in result) || (result.status !== "queued" && result.status !== "accepted")
+  ) {
     throw new Error("proveedor SMS rechazado o respuesta inesperada");
   }
   return "accepted";
@@ -51,23 +62,23 @@ export function queueFallSms(): void {
   if (process.env.FALL_SMS_ENABLED !== "true") return;
 
   const config: FallSmsConfig = {
-    rapidApiKey: process.env.RAPIDAPI_KEY ?? "",
-    d7Token: process.env.D7_SMS_TOKEN ?? "",
+    accountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
+    authToken: process.env.TWILIO_AUTH_TOKEN ?? "",
     recipient: process.env.FALL_SMS_RECIPIENT ?? "",
-    originator: process.env.FALL_SMS_ORIGINATOR ?? "FallGuard",
+    from: process.env.TWILIO_FROM ?? "",
+    messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID ?? "",
   };
-  if (!config.rapidApiKey || !config.d7Token || !config.recipient) {
+  if (!config.accountSid || !config.authToken || !config.recipient || (!config.from && !config.messagingServiceSid)) {
     console.error("[sms] configuración incompleta; aviso no enviado");
     return;
   }
 
   void sendFallSms(config)
     .then((result) => {
-      if (result === "accepted") console.info("[sms] solicitud aceptada por D7SMS (entrega no confirmada)");
+      if (result === "accepted") console.info("[sms] solicitud aceptada por Twilio (entrega no confirmada)");
     })
-    .catch((error: unknown) => {
-      // Nunca registrar cabeceras, tokens, números ni respuestas del proveedor.
-      const reason = error instanceof Error ? error.message : "error desconocido";
-      console.error(`[sms] aviso no aceptado: ${reason}`);
+    .catch(() => {
+      // Nunca registrar errores sin filtrar, cabeceras, tokens, números ni respuestas del proveedor.
+      console.error("[sms] aviso no aceptado; revise la configuración y el estado en Twilio");
     });
 }
