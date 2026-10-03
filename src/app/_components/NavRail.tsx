@@ -1,6 +1,6 @@
 "use client";
 
-import { Cctv, History, Info, LayoutGrid } from "lucide-react";
+import { Cctv, History, Info, LayoutGrid, UsersRound } from "lucide-react";
 import type { Tab } from "~/domain/types";
 
 const STROKE = 1.5;
@@ -8,6 +8,7 @@ const STROKE = 1.5;
 const ITEMS = [
   { value: "panel", label: "Panel", icon: LayoutGrid },
   { value: "historial", label: "Historial", icon: History },
+  { value: "pacientes", label: "Pacientes", icon: UsersRound },
   { value: "camara", label: "Cámara IA", icon: Cctv },
   { value: "sistema", label: "Sistema", icon: Info },
 ] as const satisfies readonly { value: Tab; label: string; icon: typeof LayoutGrid }[];

@@ -805,3 +805,308 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 
 .fg-demo-label { font-size: 14px; color: var(--color-text-secondary); margin-right: auto; }
 .fg-demo .btn { font-size: 15px; padding: 8px 16px; }
+
+/* ── Vista Pacientes y Cuidadores ─────────────────────────────────────────── */
+
+.fg-pv { display: flex; flex-direction: column; gap: 0; }
+
+.fg-pv-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Tabs modo */
+.fg-pv-tabs {
+  display: inline-flex;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.fg-pv-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 9px 18px;
+  background: #fff;
+  color: var(--color-text-body);
+  border: 0;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.fg-pv-tab + .fg-pv-tab { border-left: 1px solid var(--color-heather); }
+.fg-pv-tab-active { background: var(--color-sapphire); color: #fff; }
+.fg-pv-tab:not(.fg-pv-tab-active):hover { background: var(--color-bg); }
+
+/* Buscador */
+.fg-pv-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.fg-pv-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.fg-pv-search {
+  width: 100%;
+  padding: 9px 12px 9px 36px;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-text-body);
+  background: #fff;
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.fg-pv-search:focus { border-color: var(--color-scooter); }
+
+/* Filtros de rol */
+.fg-pv-role-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.fg-pv-role-btn {
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 6px 14px;
+  border: 1px solid var(--color-heather);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-text-body);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.fg-pv-role-btn:hover { border-color: var(--color-scooter); color: var(--color-scooter); }
+.fg-pv-role-btn-active { background: var(--color-sapphire); color: #fff; border-color: var(--color-sapphire); }
+
+/* Lista vertical */
+.fg-pv-list { display: flex; flex-direction: column; gap: 12px; }
+
+/* ── Tarjeta paciente + cuidadores (fg-pcc) ──────────────────────────────── */
+
+.fg-pcc {
+  background: #fff;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(6, 49, 84, 0.06);
+  transition: box-shadow 0.15s;
+}
+
+.fg-pcc:hover { box-shadow: 0 3px 10px rgba(6, 49, 84, 0.10); }
+
+.fg-pcc-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.fg-pcc-info { flex: 1; min-width: 0; }
+
+.fg-pcc-name {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--color-sapphire);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fg-pcc-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-top: 3px;
+}
+
+.fg-pcc-room-badge {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-sapphire);
+}
+
+.fg-pcc-counts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.fg-pcc-count-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border: 1px solid var(--color-heather);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.fg-pcc-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-scooter);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  font-weight: 500;
+}
+
+.fg-pcc-toggle:hover { color: var(--color-blue-lagoon); }
+
+.fg-pcc-caregivers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 20px 16px;
+  border-top: 1px solid var(--color-heather);
+  background: var(--color-bg);
+  animation: fgSlideDown 0.18s ease;
+}
+
+@keyframes fgSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fg-pcc-empty {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+/* ── Tarjeta cuidador + pacientes (fg-cgcard) ───────────────────────────── */
+
+.fg-cgcard {
+  background: #fff;
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(6, 49, 84, 0.06);
+  transition: box-shadow 0.15s;
+}
+
+.fg-cgcard:hover { box-shadow: 0 3px 10px rgba(6, 49, 84, 0.10); }
+
+.fg-cgcard-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.fg-cgcard-avatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-sapphire);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.fg-cgcard-info { flex: 1; min-width: 0; }
+
+.fg-cgcard-name {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--color-sapphire);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fg-cgcard-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 5px;
+}
+
+.fg-cgcard-shift,
+.fg-cgcard-phone {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.fg-cgcard-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.fg-cgcard-patients {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--color-heather);
+  background: var(--color-bg);
+  animation: fgSlideDown 0.18s ease;
+}
+
+.fg-cgcard-patient-row {
+  display: grid;
+  grid-template-columns: 80px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--color-heather);
+  font-size: 15px;
+}
+
+.fg-cgcard-patient-row:last-child { border-bottom: 0; }
+
+.fg-cgcard-patient-room {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 17px;
+  color: var(--color-sapphire);
+  font-variant-numeric: tabular-nums;
+}
+
+.fg-cgcard-patient-name { color: var(--color-text-body); }
+
+.fg-cgcard-patient-risk {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+

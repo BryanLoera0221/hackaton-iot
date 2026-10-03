@@ -14,6 +14,7 @@ import { CameraView } from "~/app/_components/CameraView";
 import { EventDialog } from "~/app/_components/EventDialog";
 import { DemoFooter } from "~/app/_components/DemoFooter";
 import { LiveDemoFooter } from "~/app/_components/LiveDemoFooter";
+import { PatientsView } from "~/app/_components/PatientsView";
 
 export default function DashboardPage() {
   const state = useFallGuard();
@@ -103,6 +104,8 @@ export default function DashboardPage() {
         {tab === "camara" && <CameraView />}
 
         {tab === "sistema" && <SystemView />}
+
+        {tab === "pacientes" && <PatientsView />}
 
         {FALLGUARD_CONFIG.showDemoFooter &&
           (FALLGUARD_CONFIG.useLiveFeed ? (

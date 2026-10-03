@@ -8,6 +8,20 @@
 
 export type Risk = "alto" | "medio" | "bajo";
 
+export type CaregiverRole = "admin" | "enfermero";
+
+export type Caregiver = {
+  id: string;
+  name: string;
+  role: CaregiverRole;
+  /** IDs de los pacientes que este cuidador atiende (Patient.id = externalId). */
+  patientIds: string[];
+  /** Turno actual, ej. "Mañana", "Tarde", "Noche". */
+  shift: string;
+  /** Iniciales o teléfono de contacto (opcional). */
+  phone?: string;
+};
+
 export type Patient = {
   /** ID que manda el Arduino/gateway, ej. "304A". */
   id: string;
@@ -58,6 +72,6 @@ export type HistoryEntry = {
 /** Estado derivado de una fila de paciente. */
 export type PatientStatus = "normal" | "exit" | "fall";
 
-export type Tab = "panel" | "historial" | "camara" | "sistema";
+export type Tab = "panel" | "historial" | "camara" | "sistema" | "pacientes";
 
 export type HistoryFilter = "todas" | "fall" | "exit";

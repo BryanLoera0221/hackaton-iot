@@ -14,7 +14,54 @@
  *      `api.alerts.list`.
  */
 
-import type { HistoryEntry, Patient } from "~/domain/types";
+import type { Caregiver, HistoryEntry, Patient } from "~/domain/types";
+
+/**
+ * Cuidadores del turno: administradores y enfermeros.
+ * patientIds apunta a Patient.id (el externalId del Arduino).
+ */
+export const CAREGIVERS: Caregiver[] = [
+  {
+    id: "c1",
+    name: "Dra. Laura Ramírez",
+    role: "admin",
+    shift: "Mañana",
+    phone: "+52 55 1234 0001",
+    patientIds: ["301A", "302A", "303A", "304A"],
+  },
+  {
+    id: "c2",
+    name: "Dr. Carlos Mendoza",
+    role: "admin",
+    shift: "Tarde",
+    phone: "+52 55 1234 0002",
+    patientIds: ["305A", "306A", "307A"],
+  },
+  {
+    id: "c3",
+    name: "Enf. María Soto",
+    role: "enfermero",
+    shift: "Mañana",
+    phone: "+52 55 1234 0003",
+    patientIds: ["301A", "301B", "302A", "302B"],
+  },
+  {
+    id: "c4",
+    name: "Enf. Jorge Herrera",
+    role: "enfermero",
+    shift: "Tarde",
+    phone: "+52 55 1234 0004",
+    patientIds: ["303A", "304A", "304B", "305A"],
+  },
+  {
+    id: "c5",
+    name: "Enf. Sandra Pérez",
+    role: "enfermero",
+    shift: "Noche",
+    phone: "+52 55 1234 0005",
+    patientIds: ["306A", "307A", "308A", "309A"],
+  },
+];
 
 export const FALLGUARD_CONFIG = {
   /** Se pinta en el subtítulo del Panel: "{floor} · N camas · N ocupadas". */
