@@ -3,34 +3,53 @@ import { test } from "node:test";
 import { queueFallSms, sendFallSms } from "../src/server/fall-sms";
 
 const config = {
-  rapidApiKey: "test-key",
-  d7Token: "test-token",
+  accountSid: "AC0123456789abcdef0123456789abcdef",
+  authToken: "test-token",
   recipient: "+525551234567",
-  originator: "FallGuard",
+  from: "+15551234567",
+  messagingServiceSid: "",
 };
 
-test("envía un aviso genérico y acepta solo la confirmación del proveedor", async () => {
+test("envía un aviso genérico directamente a Twilio", async () => {
   let request: { url: string; init: RequestInit } | undefined;
   const fetcher: typeof fetch = async (url, init) => {
     request = { url: String(url), init: init ?? {} };
-    return new Response(JSON.stringify({ status: "accepted", request_id: "abc" }), { status: 202 });
+    return new Response(JSON.stringify({ sid: "SM0123456789abcdef0123456789abcdef", status: "queued" }), { status: 201 });
   };
-
   const result = await sendFallSms(config, fetcher);
   assert.equal(result, "accepted");
-  assert.equal(request?.url, "https://d7sms.p.rapidapi.com/messages/v1/send");
-  assert.equal((request?.init.headers as Record<string, string>)["X-RapidAPI-Key"], "test-key");
-  assert.equal((request?.init.headers as Record<string, string>).Token, "test-token");
-  const body = JSON.parse(String(request?.init.body)) as { messages: Array<Record<string, unknown>> };
-  assert.deepEqual(body.messages[0]?.recipients, ["+525551234567"]);
-  assert.match(String(body.messages[0]?.content), /posible caida/i);
-  assert.doesNotMatch(String(body.messages[0]?.content), /paciente|habitaci[oó]n|301A/i);
+  assert.equal(request?.url, `https://api.twilio.com/2010-04-01/Accounts/${config.accountSid}/Messages.json`);
+  const headers = request?.init.headers as Record<string, string>;
+  assert.equal(headers.Authorization, `Basic ${Buffer.from(`${config.accountSid}:${config.authToken}`).toString("base64")}`);
+  assert.equal(headers["Content-Type"], "application/x-www-form-urlencoded");
+  assert.equal(headers["X-RapidAPI-Key"], undefined);
+  const body = new URLSearchParams(String(request?.init.body));
+  assert.equal(body.get("To"), config.recipient);
+  assert.equal(body.get("From"), config.from);
+  assert.match(String(body.get("Body")), /posible caida/i);
+  assert.doesNotMatch(String(body.get("Body")), /paciente|habitaci[oó]n|301A/i);
+});
+
+test("permite un Messaging Service como remitente", async () => {
+  let body: URLSearchParams | undefined;
+  const fetcher: typeof fetch = async (_url, init) => {
+    body = new URLSearchParams(String(init?.body));
+    return new Response(JSON.stringify({ sid: "SM0123456789abcdef0123456789abcdef", status: "accepted" }), { status: 201 });
+  };
+  assert.equal(await sendFallSms({ ...config, from: "", messagingServiceSid: "MG0123456789abcdef0123456789abcdef" }, fetcher), "accepted");
+  assert.equal(body?.get("MessagingServiceSid"), "MG0123456789abcdef0123456789abcdef");
+  assert.equal(body?.has("From"), false);
 });
 
 test("no confunde HTTP exitoso con aceptación de envío", async () => {
   const fetcher: typeof fetch = async () =>
-    new Response(JSON.stringify({ status: "rejected" }), { status: 200 });
+    new Response(JSON.stringify({ sid: "SM0123456789abcdef0123456789abcdef", status: "failed" }), { status: 201 });
   await assert.rejects(sendFallSms(config, fetcher), /rechazado/i);
+});
+
+test("no registra el cuerpo de error de Twilio", async () => {
+  const fetcher: typeof fetch = async () => new Response("sensitive provider details", { status: 400 });
+  await assert.rejects(sendFallSms(config, fetcher), /^Error: proveedor SMS respondió HTTP 400$/);
 });
 
 test("requiere configuración completa antes de enviar", async () => {
@@ -39,8 +58,13 @@ test("requiere configuración completa antes de enviar", async () => {
     called = true;
     throw new Error("unexpected request");
   };
-  assert.equal(await sendFallSms({ ...config, d7Token: "" }, fetcher), "disabled");
+  assert.equal(await sendFallSms({ ...config, authToken: "" }, fetcher), "disabled");
+  assert.equal(await sendFallSms({ ...config, from: "" }, fetcher), "disabled");
   assert.equal(called, false);
+});
+
+test("rechaza destinatarios que no están en formato internacional", async () => {
+  await assert.rejects(sendFallSms({ ...config, recipient: "6145222098" }), /destinatario SMS inválido/);
 });
 
 test("el envío automático permanece apagado sin activación explícita", () => {
