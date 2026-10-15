@@ -834,6 +834,9 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 .fg-mt-log-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .fg-mt-log-text { font-size: 14px; color: var(--color-text-body); }
 
+.fg-mt-sms { display: flex; align-items: center; gap: 6px; }
+
+
 .fg-cam-status { font-size: 13px; font-weight: 600; border-radius: 4px; padding: 3px 8px; white-space: nowrap; }
 .fg-cam-status-normal { color: var(--color-blue-lagoon); background: #e3f2f0; }
 .fg-cam-status-fall { color: #fff; background: var(--fall-fill); }
@@ -895,6 +898,29 @@ h1, h2, h3 { font-family: var(--font-heading); font-weight: 600; line-height: 1.
 .fg-pv-tab + .fg-pv-tab { border-left: 1px solid var(--color-heather); }
 .fg-pv-tab-active { background: var(--color-sapphire); color: #fff; }
 .fg-pv-tab:not(.fg-pv-tab-active):hover { background: var(--color-bg); }
+
+/* Probar SMS */
+.fg-pv-sms { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+.fg-pv-sms-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 9px 18px;
+  background: #fff;
+  color: var(--color-text-body);
+  border: 1px solid var(--color-heather);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.fg-pv-sms-btn:hover:not(:disabled) { background: var(--color-bg); }
+.fg-pv-sms-btn:disabled { opacity: 0.6; cursor: progress; }
+.fg-pv-sms-status { font-size: 14px; color: var(--color-text-secondary); }
+.fg-pv-sms-error { color: var(--fall-fill); }
 
 /* Buscador */
 .fg-pv-search-wrap {

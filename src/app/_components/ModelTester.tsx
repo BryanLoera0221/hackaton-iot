@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, CameraOff, ImageUp, LoaderCircle } from "lucide-react";
+import { Camera, CameraOff, ImageUp, LoaderCircle, MessageSquare } from "lucide-react";
+import { sendSms, smsFailed, smsText, type SmsState } from "~/app/_lib/sms";
 
 const STROKE = 1.5;
 
@@ -26,6 +27,8 @@ type VerifyEntry = {
   status: "pending" | "done" | "error";
   verdict?: Verdict;
   error?: string;
+  /** Aviso por SMS al cuidador (solo caídas de la cámara confirmadas por Claude). */
+  sms?: SmsState;
 };
 
 /** Una detección del modelo; x/y son el centro de la caja, en píxeles de la imagen. */
@@ -154,10 +157,12 @@ export function ModelTester() {
 
   /**
    * Si el resultado trae una caída, manda el cuadro a Claude en segundo plano.
-   * Una verificación a la vez y con pausa mínima entre ellas (`force` la salta,
-   * para imágenes subidas a mano).
+   * Una verificación a la vez y con pausa mínima entre ellas. Las imágenes
+   * subidas a mano (`fromUpload`) saltan la pausa y nunca mandan SMS; las de
+   * la cámara avisan al cuidador si Claude confirma la caída.
    */
-  const maybeVerify = (image: Blob, json: InferenceResult, force = false) => {
+  const maybeVerify = (image: Blob, json: InferenceResult, fromUpload = false) => {
+    const force = fromUpload;
     const fall = json.predictions
       .filter((p) => isFallClass(p.class))
       .sort((a, b) => b.confidence - a.confidence)[0];
@@ -185,7 +190,13 @@ export function ModelTester() {
       setVerifyLog((log) => log.map((e) => (e.id === id ? { ...e, ...patch } : e)));
 
     verifyWithClaude(image, detector)
-      .then((verdict) => update({ status: "done", verdict }))
+      .then((verdict) => {
+        update({ status: "done", verdict });
+        if (verdict.fell && !fromUpload) {
+          update({ sms: { status: "sending" } });
+          void sendSms("camara").then((sms) => update({ sms }));
+        }
+      })
       .catch((e: unknown) =>
         update({ status: "error", error: e instanceof Error ? e.message : "error desconocido" }),
       )
@@ -434,6 +445,10 @@ export function ModelTester() {
         )}
 
         <div className="fg-cam-side-title fg-mt-log-title">Verificación con Claude</div>
+        <p className="fg-section-sub" style={{ fontSize: 14, marginBottom: 8 }}>
+          Si la cámara detecta una caída y Claude la confirma, se avisa al cuidador por SMS (máximo
+          uno por minuto).
+        </p>
         {verifyLog.length === 0 ? (
           <p className="fg-section-sub" style={{ fontSize: 14 }}>
             Cuando el modelo detecte una caída, Claude revisará el cuadro y el resultado aparecerá
@@ -468,6 +483,14 @@ export function ModelTester() {
                   </div>
                   {e.verdict && <div className="fg-mt-log-text">{e.verdict.reason}</div>}
                   {e.error && <div className="fg-mt-log-text fg-mt-error">{e.error}</div>}
+                  {e.sms && (
+                    <div
+                      className={`fg-mt-log-text fg-mt-sms ${smsFailed(e.sms) ? "fg-mt-error" : ""}`}
+                    >
+                      <MessageSquare size={14} strokeWidth={STROKE} aria-hidden />
+                      {smsText(e.sms)}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

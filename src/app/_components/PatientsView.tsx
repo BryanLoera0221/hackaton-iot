@@ -11,7 +11,9 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  MessageSquare,
 } from "lucide-react";
+import { sendSms, smsFailed, smsText, type SmsState } from "~/app/_lib/sms";
 import type { Caregiver, CaregiverRole, Patient } from "~/domain/types";
 import { CAREGIVERS, PATIENTS } from "~/mock/data";
 import { riskLabel } from "~/app/_lib/format";
@@ -260,6 +262,41 @@ function CaregiverCard({ cg }: { cg: Caregiver }) {
   );
 }
 
+/* ── prueba de SMS ────────────────────────────────────────────────────────── */
+
+/** Manda un SMS de prueba al cuidador (FALL_SMS_RECIPIENT) y muestra el resultado. */
+function TestSmsButton() {
+  const [sms, setSms] = useState<SmsState | null>(null);
+
+  const run = async () => {
+    setSms({ status: "sending" });
+    setSms(await sendSms("prueba"));
+  };
+
+  return (
+    <div className="fg-pv-sms">
+      <button
+        type="button"
+        className="fg-pv-sms-btn"
+        disabled={sms?.status === "sending"}
+        onClick={() => void run()}
+      >
+        <MessageSquare size={16} strokeWidth={2} />
+        Probar SMS
+      </button>
+      {sms && (
+        <span className={`fg-pv-sms-status ${smsFailed(sms) ? "fg-pv-sms-error" : ""}`}>
+          {sms.status === "sent"
+            ? "Mensaje de prueba enviado al cuidador"
+            : sms.status === "sending"
+              ? "Enviando…"
+              : smsText(sms)}
+        </span>
+      )}
+    </div>
+  );
+}
+
 /* ── vista principal ──────────────────────────────────────────────────────── */
 
 type ViewMode = "pacientes" | "cuidadores";
@@ -308,6 +345,8 @@ export function PatientsView() {
             Cuidadores
           </button>
         </div>
+
+        <TestSmsButton />
 
         <div className="fg-pv-search-wrap">
           <Search size={16} strokeWidth={2} className="fg-pv-search-icon" />

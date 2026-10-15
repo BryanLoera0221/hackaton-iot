@@ -7,7 +7,14 @@ export type FallSmsConfig = {
   messagingServiceSid: string;
 };
 
-const GENERIC_MESSAGE = "FallGuard: posible caida. Revise el panel de enfermeria.";
+/** Textos fijos y sin datos del paciente (el SMS no es un canal seguro). */
+export const SMS_MESSAGES = {
+  sensor: "FallGuard: posible caida. Revise el panel de enfermeria.",
+  camara: "FallGuard: caida detectada por camara y confirmada por IA. Revise el panel de enfermeria.",
+  prueba: "FallGuard: mensaje de prueba. Si lo recibe, los avisos por SMS funcionan.",
+} as const;
+
+export type SmsKind = keyof typeof SMS_MESSAGES;
 const E164 = /^\+[1-9]\d{7,14}$/;
 const ACCOUNT_SID = /^AC[0-9a-fA-F]{32}$/;
 const SERVICE_SID = /^MG[0-9a-fA-F]{32}$/;
@@ -16,6 +23,7 @@ const MESSAGE_SID = /^SM[0-9a-fA-F]{32}$/;
 export async function sendFallSms(
   config: FallSmsConfig,
   fetcher: typeof fetch = fetch,
+  kind: SmsKind = "sensor",
 ): Promise<"accepted" | "disabled"> {
   const { accountSid, authToken, recipient, from, messagingServiceSid } = config;
   if (!accountSid || !authToken || !recipient || (!from && !messagingServiceSid)) return "disabled";
@@ -27,7 +35,7 @@ export async function sendFallSms(
     throw new Error("remitente SMS inválido");
   }
 
-  const body = new URLSearchParams({ To: recipient, Body: GENERIC_MESSAGE });
+  const body = new URLSearchParams({ To: recipient, Body: SMS_MESSAGES[kind] });
   if (messagingServiceSid) body.set("MessagingServiceSid", messagingServiceSid);
   else body.set("From", from);
 
@@ -57,17 +65,21 @@ export async function sendFallSms(
   return "accepted";
 }
 
-/** No retrasa ni cambia la respuesta que espera el dispositivo. */
-export function queueFallSms(): void {
-  if (process.env.FALL_SMS_ENABLED !== "true") return;
-
-  const config: FallSmsConfig = {
+export function fallSmsConfigFromEnv(): FallSmsConfig {
+  return {
     accountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
     authToken: process.env.TWILIO_AUTH_TOKEN ?? "",
     recipient: process.env.FALL_SMS_RECIPIENT ?? "",
     from: process.env.TWILIO_FROM ?? "",
     messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID ?? "",
   };
+}
+
+/** No retrasa ni cambia la respuesta que espera el dispositivo. */
+export function queueFallSms(): void {
+  if (process.env.FALL_SMS_ENABLED !== "true") return;
+
+  const config = fallSmsConfigFromEnv();
   if (!config.accountSid || !config.authToken || !config.recipient || (!config.from && !config.messagingServiceSid)) {
     console.error("[sms] configuración incompleta; aviso no enviado");
     return;
